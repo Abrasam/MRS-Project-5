@@ -88,8 +88,8 @@ def rule_based(front, front_left, front_right, left, right):
 
 
 class SimpleLaser(object):
-  def __init__(self):
-    rospy.Subscriber('/scan', LaserScan, self.callback)
+  def __init__(self, name):
+    rospy.Subscriber('/' + name + '/scan', LaserScan, self.callback)
     self._angles = [0., np.pi / 4., -np.pi / 4., np.pi / 2., -np.pi / 2.]
     self._width = np.pi / 180. * 10.  # 10 degrees cone of view.
     self._measurements = [float('inf')] * len(self._angles)
@@ -130,7 +130,7 @@ class SimpleLaser(object):
 
 
 class GroundtruthPose(object):
-  def __init__(self, name='turtlebot3_burger'):
+  def __init__(self, name='tb3_0'):
     rospy.Subscriber('/gazebo/model_states', ModelStates, self.callback)
     self._pose = np.array([np.nan, np.nan, np.nan], dtype=np.float32)
     self._name = name
@@ -164,10 +164,10 @@ def run(args):
 
   # Update control every 100 ms.
   rate_limiter = rospy.Rate(100)
-  publisher = rospy.Publisher('/cmd_vel', Twist, queue_size=5)
-  laser = SimpleLaser()
+  publisher = rospy.Publisher('/' + args.robot + '/cmd_vel', Twist, queue_size=5)
+  laser = SimpleLaser(name=args.robot)
   # Keep track of groundtruth position for plotting purposes.
-  groundtruth = GroundtruthPose()
+  groundtruth = GroundtruthPose(name=args.robot)
   pose_history = []
   with open('/tmp/gazebo_exercise.txt', 'w'):
     pass
@@ -187,7 +187,7 @@ def run(args):
     # Log groundtruth positions in /tmp/gazebo_exercise.txt
     pose_history.append(groundtruth.pose)
     if len(pose_history) % 10:
-      with open('/tmp/gazebo_exercise.txt', 'a') as fp:
+      with open('/tmp/gazebo_robot_' + args.robot + '.txt', 'a') as fp:
         fp.write('\n'.join(','.join(str(v) for v in p) for p in pose_history) + '\n')
         pose_history = []
     rate_limiter.sleep()
@@ -196,6 +196,7 @@ def run(args):
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(description='Runs obstacle avoidance')
   parser.add_argument('--mode', action='store', default='braitenberg', help='Method.', choices=['braitenberg', 'rule_based'])
+  parser.add_argument('--robot', action='store')
   args, unknown = parser.parse_known_args()
   try:
     run(args)

@@ -1,0 +1,17 @@
+<launch>
+  <!-- 
+       Default GUI to true for local Gazebo client. Allows override 
+       to set disable GUI for RoboMaker. See part0.launch. 
+  -->
+  <arg name="use_gui" default="true"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find project)/ros/worlds/medium.world"/>
+    <arg name="paused" value="true"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="$(arg use_gui)"/>
+    <arg name="headless" value="false"/>
+    <arg name="debug" value="false"/>
+  </include>
+
+</launch>

@@ -42,48 +42,22 @@ def braitenberg(front, front_left, front_right, left, right):
 
 
 def rule_based(front, front_left, front_right, left, right):
-  u = 0.  # [m/s]
+  u = 0.25  # [m/s]
   w = 0.  # [rad/s] going counter-clockwise.
 
-  # MISSING: Implement a rule-based controller that avoids obstacles.:w
-
-  if front > 3.5:
-    front = 3.5
-
-  if front_left > 3.5:
-    front_left = 3.5
-
-  if front_right > 3.5:
-    front_right = 3.5
-
-  if left > 3.5:
-    left = 3.5
-
-  if right > 3.5:
-    right = 3.5
-
-  if front < 0.5:
-    u = 0.0
-    if front_left > front_right and left > right:
-      w = 2
-    else:
-      w = -2
-  elif front < 1.5:
-    u = 0.3
-    if front_left > front_right:
-      w = 1
-    else:
-      w = -1
-  elif left < 0.5 or right < 0.5:
-    u = 0.4
-    if left > right:
-      w = 0.5
-    else:
-      w = -0.5
-  else:
-    u = 0.8
-    w = 0.0
-
+  if front < 0.25:
+    u = 0
+    w = -0.25
+  if front_left < 0.2:
+    u = 0
+    w = -0.2
+  elif front_right < 0.2:
+    u = 0
+    w = 0.2
+  elif left < 0.15:
+    w = -0.2
+  elif right < 0.15:
+    w = 0.2
   return u, w
 
 
@@ -188,7 +162,7 @@ def run(args):
     pose_history.append(groundtruth.pose)
     if len(pose_history) % 10:
       with open('/tmp/gazebo_robot_' + args.robot + '.txt', 'a') as fp:
-        fp.write('\n'.join(','.join(str(v) for v in p) for p in pose_history) + '\n')
+        #fp.write('\n'.join(','.join(str(v) for v in p) for p in pose_history) + '\n')
         pose_history = []
     rate_limiter.sleep()
 

@@ -1,5 +1,5 @@
 <launch>
 	<arg name="mode" />
 
-	<node pkg="exercises" type="localization.py" name="localization" output="screen"></node>
+	<node pkg="project" type="localization.py" name="localization" output="screen"></node>
 </launch>

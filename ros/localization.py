@@ -37,7 +37,7 @@ Y = 1
 YAW = 2
 
 ROBOT_RADIUS = 0.105 / 2.
-WALL_OFFSET = 2.
+WALL_OFFSET = 4.
 CYLINDER_POSITION = np.array([.3, .2], dtype=np.float32)
 CYLINDER_RADIUS = .3 + ROBOT_RADIUS
 
@@ -80,8 +80,8 @@ class Particle(object):
 
     while not valid:
       self._pose = np.random.rand(3)
-      self._pose[X] = (self._pose[X] - 0.5) * 4.0
-      self._pose[Y] = (self._pose[Y] - 0.5) * 4.0
+      self._pose[X] = (self._pose[X] - 0.5) * 8.0
+      self._pose[Y] = (self._pose[Y] - 0.5) * 8.0
       self._pose[YAW] *= 2 * np.pi
 
       valid = self.is_valid()
@@ -100,10 +100,23 @@ class Particle(object):
 
     pos = np.array([self._pose[X], self._pose[Y]], dtype=np.float32)
 
-    cyl_offset = np.subtract(pos, CYLINDER_POSITION)
-    cyl_dist = np.linalg.norm(cyl_offset)
+    def inside_cylinder(cx, cy, cr):
+      cyl_offset = np.subtract(pos, np.array([cx, cy], dtype=np.float32))
+      cyl_dist = np.linalg.norm(cyl_offset)
 
-    if cyl_dist < CYLINDER_RADIUS + ROBOT_RADIUS:
+      return cyl_dist < cr
+
+    def inside_aa_box(x1, y1, x2, y2):
+      return x1 < self._pose[X] < x2 and y1 < self._pose[Y] < y2
+
+    if inside_cylinder(0.3, 0.2, 0.3) or\
+       inside_cylinder(2.5, 0.5, 0.7) or\
+       inside_cylinder(1.5, 2.5, 0.5) or\
+       inside_cylinder(-2.0, 3.0, 0.3):
+      return False
+
+    if inside_aa_box(-2.15, -2.15, 2.15, -2.0) or\
+       inside_aa_box(-2.15, -3.15, -2.0, 1.15):
       return False
 
     return True
@@ -212,6 +225,33 @@ class Particle(object):
         return t1
       return float('inf')
 
+    def intersection_aa_box(x1, y1, x2, y2):
+      px = self._pose[X]
+      py = self._pose[Y]
+      dist = float('inf')
+      x_vel = np.cos(angle)
+      y_vel = np.sin(angle)
+
+      if px < x1 and x_vel > 0:
+        y_move = (y_vel * (x1 - px) / x_vel)
+        if y1 <= py + y_move <= y2:
+          dist = np.sqrt((px - x1) ** 2 + y_move ** 2)
+      elif px > x2 and x_vel < 0:
+        y_move = (y_vel * (x2 - px) / x_vel)
+        if y1 <= py + y_move <= y2:
+          dist = np.sqrt((px - x2) ** 2 + y_move ** 2)
+
+      if py < y1 and y_vel > 0:
+        x_move = (x_vel * (y1 - py) / y_vel)
+        if x1 <= px + x_move <= x2:
+          dist = min(dist, np.sqrt(x_move ** 2 + (py - y1) ** 2))
+      elif py > y2 and y_vel < 0:
+        x_move = (x_vel * (y2 - py) / y_vel)
+        if x1 <= px + x_move <= x2:
+          dist = min(dist, np.sqrt(x_move ** 2 + (py - y2) ** 2))
+
+      return dist
+
     def intersection_cylinder(x, y, r):
       center = np.array([x, y], dtype=np.float32)
       v = np.array([np.cos(angle + self._pose[YAW] + np.pi), np.sin(angle + self._pose[YAW] + np.pi)],
@@ -232,11 +272,18 @@ class Particle(object):
         return d
       return float('inf')
 
-    d = min(intersection_segment(-WALL_OFFSET, -WALL_OFFSET, -WALL_OFFSET, WALL_OFFSET),
-            intersection_segment(WALL_OFFSET, WALL_OFFSET, -WALL_OFFSET, WALL_OFFSET),
-            intersection_segment(-WALL_OFFSET, WALL_OFFSET, -WALL_OFFSET, -WALL_OFFSET),
-            intersection_segment(-WALL_OFFSET, WALL_OFFSET, WALL_OFFSET, WALL_OFFSET),
-            intersection_cylinder(CYLINDER_POSITION[X], CYLINDER_POSITION[Y], CYLINDER_RADIUS))
+    d = min(
+      intersection_segment(-WALL_OFFSET, -WALL_OFFSET, -WALL_OFFSET, WALL_OFFSET),
+      intersection_segment(WALL_OFFSET, WALL_OFFSET, -WALL_OFFSET, WALL_OFFSET),
+      intersection_segment(-WALL_OFFSET, WALL_OFFSET, -WALL_OFFSET, -WALL_OFFSET),
+      intersection_segment(-WALL_OFFSET, WALL_OFFSET, WALL_OFFSET, WALL_OFFSET),
+      intersection_cylinder(0.3, 0.2, 0.3),
+      intersection_cylinder(2.5, 0.5, 0.7),
+      intersection_cylinder(1.5, 2.5, 0.5),
+      intersection_cylinder(-2.0, 3.0, 0.3),
+      intersection_aa_box(-2.15, -2.15, 2.15, -2.0),
+      intersection_aa_box(-2.15, -3.15, -2.0, 1.15)
+    )
     return d
 
   @property
@@ -249,8 +296,8 @@ class Particle(object):
 
 
 class SimpleLaser(object):
-  def __init__(self):
-    rospy.Subscriber('/scan', LaserScan, self.callback)
+  def __init__(self, name):
+    rospy.Subscriber('/' + name + '/scan', LaserScan, self.callback)
     self._angles = [0., np.pi / 4., -np.pi / 4., np.pi / 2., -np.pi / 2.]
     self._width = np.pi / 180. * 3.1  # 3.1 degrees cone of view (3 rays).
     self._measurements = [float('inf')] * len(self._angles)
@@ -291,10 +338,10 @@ class SimpleLaser(object):
 
 
 class Motion(object):
-  def __init__(self):
+  def __init__(self, name):
     self._previous_time = None
     self._delta_pose = np.array([0., 0., 0.], dtype=np.float32)
-    rospy.Subscriber('/odom', Odometry, self.callback)
+    rospy.Subscriber('/' + name + '/odom', Odometry, self.callback)
 
   def callback(self, msg):
     u = msg.twist.twist.linear.x
@@ -320,7 +367,7 @@ class Motion(object):
 
 
 class GroundtruthPose(object):
-  def __init__(self, name='turtlebot3_burger'):
+  def __init__(self, name):
     rospy.Subscriber('/gazebo/model_states', ModelStates, self.callback)
     self._pose = np.array([np.nan, np.nan, np.nan], dtype=np.float32)
     self._name = name
@@ -351,16 +398,18 @@ class GroundtruthPose(object):
 def run(args):
   rospy.init_node('localization')
 
+  robot = "tb3_0"
+
   # Update control every 100 ms.
   rate_limiter = rospy.Rate(100)
-  publisher = rospy.Publisher('/cmd_vel', Twist, queue_size=5)
-  particle_publisher = rospy.Publisher('/particles', PointCloud, queue_size=1)
-  laser = SimpleLaser()
-  motion = Motion()
+  publisher = rospy.Publisher('/' + robot + '/cmd_vel', Twist, queue_size=5)
+  particle_publisher = rospy.Publisher('/' + robot + '/particles', PointCloud, queue_size=1)
+  laser = SimpleLaser(robot)
+  motion = Motion(robot)
   # Keep track of groundtruth position for plotting purposes.
-  groundtruth = GroundtruthPose()
+  groundtruth = GroundtruthPose(robot)
   pose_history = []
-  with open('/tmp/gazebo_exercise.txt', 'w'):
+  with open('/tmp/gazebo_exercise_' + robot + '.txt', 'w'):
     pass
 
   num_particles = 50

@@ -130,7 +130,7 @@ class GroundtruthPose(object):
   @property
   def pose(self):
     return self._pose
-  
+
 
 def run(args):
   rospy.init_node('obstacle_avoidance')

@@ -164,7 +164,7 @@ def run(args):
             start_timer = time.time()
             continue
 
-        if time.time() - start_timer < 10: # Run around for 10 seconds
+        if time.time() - start_timer < 1: # Run around for 10 seconds
             for index, robot in enumerate(["tb3_0", "tb3_1", "tb3_2"]):
                 u, w = avoidance_method(*lasers[index].measurements)
                 vel_msg = Twist()
@@ -197,8 +197,10 @@ def run(args):
         # Locations - currenlty use ground truth
         # TODO - must switch to localization result
 
-        robot_locations = [i.pose for i in ground_truths]
+        robot_locations = [(i.pose[0] , i.pose[1]) for i in ground_truths]
         print(robot_locations)
+        movement_functions = divide(args, robot_locations, 450)
+        print([i(0) for i in movement_functions])
         break
 
 
@@ -207,6 +209,8 @@ if __name__ == '__main__':
     parser.add_argument('--mode', action='store', default='braitenberg',
                         help='Method.', choices=['braitenberg', 'rule_based'])
     #parser.add_argument('--robot', action='store')
+    parser.add_argument('--map', action='store', default='../ros/world_map',
+                        help='Which map to use.')
     args, unknown = parser.parse_known_args()
     try:
         run(args)

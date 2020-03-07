@@ -739,6 +739,8 @@ def generate_route_poses(edges, robot_position, occupancy_grid, robot_positions,
     return poses
 
 def create_occupancy_grid(args):
+    print(os.getcwd())
+    print(os.listdir("."))
     with open(args.map + '.yaml') as fp:
         data = yaml.load(fp)
     img = read_pgm(os.path.join(os.path.dirname(args.map), data['image']))
@@ -831,7 +833,7 @@ def create_route(poses, time, occupancy_grid):
     #print(poses)
     return position
 
-def divide(robot_locations):
+def divide(args, robot_locations, lap_time):
 
 
     original_occupancy_grid, occupancy_grid, scaling = create_occupancy_grid(args)
@@ -840,6 +842,8 @@ def divide(robot_locations):
     """robot_locations = [occupancy_grid.get_index(
         sample_random_position(occupancy_grid)) for i in range(3)]
     robot_locations = list(set(robot_locations))"""
+    print(original_occupancy_grid.values.shape)
+    print(robot_locations)
     robot_locations = [original_occupancy_grid.get_index(i) for i in robot_locations]
     #robot_locations = [(3, 24), (18, 16), (27, 3), (34, 12)]
     print(robot_locations)
@@ -864,7 +868,7 @@ def divide(robot_locations):
         for a, b, c in poses:
             scaled_poses.append((a*scaling, b*scaling, c))
         robot_paths.append(scaled_poses)
-        pose_func = create_route(scaled_poses, 30000, original_occupancy_grid)
+        pose_func = create_route(scaled_poses, lap_time, original_occupancy_grid)
         """for i in range(100000):
             pose_func(i)"""
         routes.append(pose_func)
@@ -889,7 +893,7 @@ def divide(robot_locations):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Provides routes to each robot to give full coverage.')
-    parser.add_argument('--map', action='store', default='world_map',
+    parser.add_argument('--map', action='store', default='../ros/world_map',
                         help='Which map to use.')
     args, unknown = parser.parse_known_args()
     """f = create_route([1, 2, 3, 4, 1], 10)

@@ -202,21 +202,17 @@ def run(args):
             # Transposing location
             robot_locations = [(i.pose[0] , i.pose[1]) for i in ground_truths]
             print(robot_locations)
-            #sys.exit()
             movement_functions = divide(args, robot_locations, 450)
             if movement_functions == False:
+                time.sleep(2)
                 start_time = time.time()
                 print(robot_locations)
-
-                print([i(0) for i in movement_functions])
                 print("Fail")
-                time.sleep(5)
-                #sys.exit()
                 continue
-
             paths_found = True
         print(robot_locations)
-
+        print([(i.pose[0] , i.pose[1]) for i in ground_truths])
+        break
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Runs obstacle avoidance')

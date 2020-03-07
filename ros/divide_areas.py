@@ -849,10 +849,23 @@ def divide(args, robot_locations, lap_time):
     print(robot_locations)
     robot_locations = [original_occupancy_grid.get_index(i) for i in robot_locations]
     #robot_locations = [(48, 51), (80, 51), (74, 95)]
-    for i in range(len(robot_locations)):
-        a, b = robot_locations[i]
-        robot_locations[i] = (int(a/scaling), int(b/scaling))
-        print(occupancy_grid.is_free(robot_locations[i]))
+    for r in range(len(robot_locations)):
+        a, b = robot_locations[r]
+        robot_locations[r] = (int(a/scaling), int(b/scaling))
+        #If square is not free then move over to nearest adjacent free cell.
+        if not occupancy_grid.is_free_by_index(*robot_locations[r]):
+            i, j = robot_locations[r]
+            to_check = [(i-1, j), (i+1, j), (i, j+1), (i, j-1), (i-1, j-1), (i-1, j+1), (i+1, j-1), (i+1, j+1)]
+            done=False
+            for new in to_check:
+                if occupancy_grid.is_free_by_index(*new):
+                    robot_locations[r] = new
+                    done=True
+                    break
+            if not done:
+                # Abandon. Robots need to move around more.
+                return False
+
 
     print(robot_locations)
 
@@ -909,7 +922,7 @@ if __name__ == "__main__":
     """f = create_route([1, 2, 3, 4, 1], 10)
     for i in range(0, 10):
         print(f(i))"""
-    divide(args, [(-0.99165916, 0.24508765), (1.0083408, 0.24508765), (1.0988326, 1.9986352)], 450)
+    divide(args, [(1.936162, 3.2647955), (3.8319607, 1.4526322), (-0.82950312, -1.8517277)], 450)
     """try:
         run(args)
     except rospy.ROSInterruptException:

@@ -3,7 +3,8 @@
 \usepackage[hidelinks]{hyperref}
 \usepackage{amsmath}
 \usepackage[margin=1.5in]{geometry}
-
+\usepackage{graphicx}
+\usepackage{caption}
 
 \begin{document}
 \twocolumn
@@ -40,6 +41,17 @@ We then refine the weight if there are any other robots in range and line-of-sig
 where $p_k$ ranges over the set of particles from robot $r_j$, $d_j$ is the received distance between this robot and robot $r_j$, $\theta_j$ is the received bearing of this robot from $r_j$, $D_i(p_k)$ is the distance between the particle $i$ on this robot and the particle $p_k$ from the other robot, $\Theta_i(p_k)$ is the bearing between the particle $i$ and the particle $p_k$ on the other robot and $\xi$ is the covariance matrix. I have omitted normalisation factors.
 
 We then take these two quantities and multiply them together to get the final weight.
+\begin{figure}
+	\centering
+	\includegraphics[width=\columnwidth]{figure_l1.png}
+	\caption{Error of localisation estimation over time using collaborative approach.}
+\end{figure}
+\begin{figure}
+	\centering
+	\includegraphics[width=\columnwidth]{figure_l2.png}
+	\caption{Error of localisation estimation over time using standard approach.}
+\end{figure}
+We will now compare the performance of the collaborative localisation and the non-collaborative approach. To do this we created a test environment where two robots were already well-localised and one was not. Figure 1 shows the localisation error over time with the collaborative approach while figure 2 shows the error for the standard (non-collaborative) approach. As can be clearly seen the collaborative approach yields a much faster convergence and a lower error following convergence.
 \section{Centralised Navigation}
 \section{Decentralised Navigation}
 \begin{thebibliography}{9}

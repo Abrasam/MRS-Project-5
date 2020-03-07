@@ -365,7 +365,7 @@ def run(args):
             ang = -ang
           raytrace = groundtruth[j].ray_trace(ang)
           if raytrace >= dist:
-            messages.append((dist*np.random.normal(loc=1, scale=0.1), ang*np.random.normal(loc=1, scale=0.1), list(map(lambda p: Particle().copy(p), particles[j])) if j == 0 else list(map(lambda p: p.set(groundtruth[j].pose+normalize(np.random.randn())), [Particle() for _ in range(num_particles)]))))
+            messages.append((dist*np.random.normal(loc=1, scale=0.1), ang*np.random.normal(loc=1, scale=0.1), list(map(lambda p: Particle().copy(p), particles[j])) if j == 0 else list(map(lambda p: p.set(groundtruth[j].pose+np.random.randn()), [Particle() for _ in range(num_particles)]))))
 
       # Update particle positions and weights.
       total_weight = 0.

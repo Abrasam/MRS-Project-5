@@ -99,10 +99,8 @@ class Particle(object):
         dot = dir_vec.dot(between_vec)
         if dot > 1:
           dot = 1
-          print(dot)
         if dot < -1:
           dot = -1
-          print(dot)
         ang = np.arccos(dot)
         if dir_vec.dot(np.array([-between_vec[Y],between_vec[X]])) > 0:
           ang = -ang
@@ -126,7 +124,7 @@ class Particle(object):
     prob *= norm.pdf(cap(front_right), dist(-np.pi/4), sigma)
     prob *= norm.pdf(cap(left), dist(np.pi/2), sigma)
     prob *= norm.pdf(cap(right), dist(-np.pi/2), sigma)
-    prob /=1 # normalise to be within range 0-1
+    #prob /=1 # normalise to be within range 0-1
     self._weight = prob if self.is_valid() else 0
 
   def ray_trace(self, angle):
@@ -371,14 +369,14 @@ def run(args):
 
       # Update particle positions and weights.
       total_weight = 0.
-      print(i)
+      #t = time.time()
       delta_pose = motion[i].delta_pose
       for _, p in enumerate(particles[i]):
         p.move(delta_pose)
         p.compute_weight(*laser[i].measurements)
         p.refine_weight(messages)
         total_weight += p.weight
-
+      #print(time.time()-t)
       # Low variance re-sampling of particles.
       new_particles = []
       random_weight = np.random.rand() * total_weight / num_particles

@@ -750,9 +750,9 @@ def create_occupancy_grid(args):
     occupancy_grid[img > .9] = FREE
 
     # Transpose (undo ROS processing).
-    occupancy_grid = occupancy_grid.T
+    #occupancy_grid = occupancy_grid.T
     # Invert Y-axis.
-    occupancy_grid = occupancy_grid[:, ::-1]
+    #occupancy_grid = occupancy_grid[:, ::-1]
 
     original_occupancy_grid = OccupancyGrid(
         occupancy_grid, data['origin'], data['resolution'])

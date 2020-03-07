@@ -793,13 +793,14 @@ def create_occupancy_grid(args):
 
 # Returns a function that tells the robot where it must be at any given time.
 def create_route(poses, time, occupancy_grid):
+
     time_between_each = time / (len(poses)-1)
     def position(t):
         t = t % time
         segment = int(t / time_between_each)
         #print(segment)
-        start_pose = poses[segment]
-        end_pose = poses[segment + 1]
+        start_pose = occupancy_grid.get_position(*poses[segment])
+        end_pose = occupancy_grid.get_position(*poses[segment + 1])
         fraction = (t % time_between_each) / time_between_each
         if start_pose[2] == end_pose[2]:
             # straight line

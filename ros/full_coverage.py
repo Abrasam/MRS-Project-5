@@ -164,7 +164,7 @@ def run(args):
             start_timer = time.time()
             continue
 
-        if time.time() - start_timer < 1: # Run around for 10 seconds
+        if time.time() - start_timer < 5: # Run around for 10 seconds
             for index, robot in enumerate(["tb3_0", "tb3_1", "tb3_2"]):
                 u, w = avoidance_method(*lasers[index].measurements)
                 vel_msg = Twist()

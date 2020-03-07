@@ -10,6 +10,9 @@ import rospy
 
 import scipy.special
 
+from divide_areas import divide
+import time
+
 
 # Robot motion commands:
 # http://docs.ros.org/api/geometry_msgs/html/msg/Twist.html
@@ -153,25 +156,50 @@ def run(args):
     with open('/tmp/gazebo_exercise.txt', 'w'):
         pass
 
+    start_timer = time.time()
     while not rospy.is_shutdown():
         # Make sure all measurements are ready.
         if not all(laser.ready for laser in lasers) or not all(groundtruth.ready for groundtruth in ground_truths):
             rate_limiter.sleep()
+            start_timer = time.time()
             continue
-        for index, robot in enumerate(["tb3_0", "tb3_1", "tb3_2"]):
-            u, w = avoidance_method(*lasers[index].measurements)
-            vel_msg = Twist()
-            vel_msg.linear.x = u
-            vel_msg.angular.z = w
-            publishers[index].publish(vel_msg)
 
+        if time.time() - start_timer < 10: # Run around for 10 seconds
+            for index, robot in enumerate(["tb3_0", "tb3_1", "tb3_2"]):
+                u, w = avoidance_method(*lasers[index].measurements)
+                vel_msg = Twist()
+                vel_msg.linear.x = u
+                vel_msg.angular.z = w
+                publishers[index].publish(vel_msg)
+
+                # Log groundtruth positions in /tmp/gazebo_exercise.txt
+                pose_histories[index].append(ground_truths[index].pose)
+                if len(pose_histories[index]) % 10:
+                    with open('/tmp/gazebo_robot_' + robot + '.txt', 'a') as fp:
+                        #fp.write('\n'.join(','.join(str(v) for v in p) for p in pose_history) + '\n')
+                        pose_histories[index] = []
+            rate_limiter.sleep()
+            continue
+        # Stop all Robots
+        u, w = 0, 0
+        vel_msg = Twist()
+        vel_msg.linear.x = u
+        vel_msg.angular.z = w
+        for index, robot in enumerate(["tb3_0", "tb3_1", "tb3_2"]):
+            publishers[index].publish(vel_msg)
             # Log groundtruth positions in /tmp/gazebo_exercise.txt
             pose_histories[index].append(ground_truths[index].pose)
             if len(pose_histories[index]) % 10:
                 with open('/tmp/gazebo_robot_' + robot + '.txt', 'a') as fp:
                     #fp.write('\n'.join(','.join(str(v) for v in p) for p in pose_history) + '\n')
                     pose_histories[index] = []
-        rate_limiter.sleep()
+
+        # Locations - currenlty use ground truth
+        # TODO - must switch to localization result
+
+        robot_locations = [i.pose for i in ground_truths]
+        print(robot_locations)
+        break
 
 
 if __name__ == '__main__':

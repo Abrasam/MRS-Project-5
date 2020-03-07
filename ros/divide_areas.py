@@ -831,15 +831,16 @@ def create_route(poses, time, occupancy_grid):
     #print(poses)
     return position
 
-def run(args):
+def divide(robot_locations):
 
 
     original_occupancy_grid, occupancy_grid, scaling = create_occupancy_grid(args)
     #robot_locations = [(3, 7), (8, 8)]
 
-    robot_locations = [occupancy_grid.get_index(
+    """robot_locations = [occupancy_grid.get_index(
         sample_random_position(occupancy_grid)) for i in range(3)]
-    robot_locations = list(set(robot_locations))
+    robot_locations = list(set(robot_locations))"""
+    robot_locations = [original_occupancy_grid.get_index(i) for i in robot_locations]
     #robot_locations = [(3, 24), (18, 16), (27, 3), (34, 12)]
     print(robot_locations)
 
@@ -884,8 +885,7 @@ def run(args):
         adjusted_edges_used[(scaling*a+occupancy_grid.resolution, scaling*b+occupancy_grid.resolution)] = edges_used[key]
 
     draw_world(original_occupancy_grid, robot_locations, assignments, lines_plot=adjusted_edges_used, poses=[item for subpath in robot_paths for item in subpath], line_multiplier=scaling)
-
-
+    return routes
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Provides routes to each robot to give full coverage.')

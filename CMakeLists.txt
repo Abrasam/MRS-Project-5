@@ -64,7 +64,7 @@
 
 
 cmake_minimum_required(VERSION 2.8.3)
-project(MRS-Project-5)
+project(project)
 
 ################################################################################
 # Find catkin packages and libraries for catkin and system dependencies
@@ -118,11 +118,12 @@ catkin_install_python(PROGRAMS
   ros/localization_pd452.py
   ros/localization.py
   ros/obstacle_avoidance.py
+  ros/obstacle_avoidance_temp.py
   ros/plot_trajectory.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 install(DIRECTORY
-    part0 part1 part2
+    ros
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )

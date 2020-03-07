@@ -146,16 +146,16 @@ def run(args):
     for robot in ["tb3_0", "tb3_1", "tb3_2"]:
         publishers.append(rospy.Publisher(
             '/' + robot + '/cmd_vel', Twist, queue_size=5))
-            lasers.append(SimpleLaser(name=robot))
-            # Keep track of groundtruth position for plotting purposes.
-            groundtruths.append(GroundtruthPose(name=robot))
-            pose_histories.append([])
+        lasers.append(SimpleLaser(name=robot))
+        # Keep track of groundtruth position for plotting purposes.
+        ground_truths.append(GroundtruthPose(name=robot))
+        pose_histories.append([])
     with open('/tmp/gazebo_exercise.txt', 'w'):
         pass
 
     while not rospy.is_shutdown():
         # Make sure all measurements are ready.
-        if not all(laser.ready for laser in lasers) or not all(groundtruth.ready for groundtruth in groundtruths):
+        if not all(laser.ready for laser in lasers) or not all(groundtruth.ready for groundtruth in ground_truths):
             rate_limiter.sleep()
             continue
         for index, robot in enumerate(["tb3_0", "tb3_1", "tb3_2"]):
@@ -166,7 +166,7 @@ def run(args):
             publishers[index].publish(vel_msg)
 
             # Log groundtruth positions in /tmp/gazebo_exercise.txt
-            pose_histories[index].append(groundtruths[index].pose)
+            pose_histories[index].append(ground_truths[index].pose)
             if len(pose_histories[index]) % 10:
                 with open('/tmp/gazebo_robot_' + robot + '.txt', 'a') as fp:
                     #fp.write('\n'.join(','.join(str(v) for v in p) for p in pose_history) + '\n')

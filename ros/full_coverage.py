@@ -134,7 +134,7 @@ class GroundtruthPose(object):
 
 
 def run(args):
-    rospy.init_node('obstacle_avoidance')
+    rospy.init_node('full_coverage')
     avoidance_method = globals()[args.mode]
 
     # Update control every 100 ms.
@@ -178,7 +178,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Runs obstacle avoidance')
     parser.add_argument('--mode', action='store', default='braitenberg',
                         help='Method.', choices=['braitenberg', 'rule_based'])
-    parser.add_argument('--robot', action='store')
+    #parser.add_argument('--robot', action='store')
     args, unknown = parser.parse_known_args()
     try:
         run(args)

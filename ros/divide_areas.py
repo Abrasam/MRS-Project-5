@@ -786,12 +786,48 @@ def create_occupancy_grid(args):
 
     return original_occupancy_grid, occupancy_grid, cells_to_merge
 
-def create_route(poses, time):
-    return
+# Returns a function that tells the robot where it must be at any given time.
+def create_route(poses, time, occupancy_grid):
     time_between_each = time / (len(poses)-1)
     def position(t):
-        segment = t // time_between_each
-        return segment
+        t = t % time
+        segment = int(t / time_between_each)
+        #print(segment)
+        start_pose = poses[segment]
+        end_pose = poses[segment + 1]
+        fraction = (t % time_between_each) / time_between_each
+        if start_pose[2] == end_pose[2]:
+            # straight line
+            pose = (start_pose[0] + fraction*(end_pose[0]-start_pose[0]),
+                    start_pose[1] + fraction*(end_pose[1]-start_pose[1]),
+                    start_pose[2])
+        else:
+            angle = (end_pose[2] - start_pose[2]) * fraction
+            """if start_pose[2] == 0:
+                if end_pose[2] == np.pi/2:
+                    pose = (end_pose[0]-np.cos(angle))"""
+
+            angle = end_pose[2] + np.pi + fraction*(end_pose[2] - start_pose[2])
+            radius = np.absolute(start_pose[0]-end_pose[0])
+
+            y_change = end_pose[1] - start_pose[1] # Assume to be the radius
+            x_change = end_pose[0] - start_pose[0]
+            #angle = (end_pose[2] - start_pose[2]) * fraction
+
+            if start_pose[2] == 0 or start_pose[2] == np.pi:
+                centre = (end_pose[0], start_pose[1])
+            else:
+                centre = (start_pose[0], end_pose[1])
+
+
+            pose = (centre[0] - radius*np.sin(angle),
+                    centre[1] + radius*np.cos(angle),
+                    start_pose[2] + fraction*(end_pose[2]-start_pose[2]))
+        #print(start_pose, end_pose)
+        #print(pose)
+        #print(fraction)
+        #print()
+        return pose
     #print(poses)
     return position
 
@@ -802,7 +838,7 @@ def run(args):
     #robot_locations = [(3, 7), (8, 8)]
 
     robot_locations = [occupancy_grid.get_index(
-        sample_random_position(occupancy_grid)) for i in range(5)]
+        sample_random_position(occupancy_grid)) for i in range(3)]
     robot_locations = list(set(robot_locations))
     #robot_locations = [(3, 24), (18, 16), (27, 3), (34, 12)]
     print(robot_locations)
@@ -823,8 +859,15 @@ def run(args):
         #draw_world(occupancy_grid, robot_locations, assignments, lines_plot = new_edges)
         poses = generate_route_poses(
             new_edges, robot_location, occupancy_grid, robot_locations, assignments, lines_plot=new_edges)
-        robot_paths += poses
-        routes.append(create_route(poses, time))
+        scaled_poses = []
+        for a, b, c in poses:
+            scaled_poses.append((a*scaling, b*scaling, c))
+        robot_paths.append(scaled_poses)
+        pose_func = create_route(scaled_poses, 30000, original_occupancy_grid)
+        """for i in range(100000):
+            pose_func(i)"""
+        routes.append(pose_func)
+        #sys.exit()
         for key in new_edges:
             edges_used[key] = new_edges[key]
 
@@ -834,17 +877,13 @@ def run(args):
         a, b = robot_locations[i]
         robot_locations[i] = (a*scaling, b*scaling)
 
-    for i in range(len(robot_paths)):
-        a, b, c = robot_paths[i]
-        robot_paths[i] = (a*scaling, b*scaling, c)
-
     adjusted_edges_used = {}
 
     for key in edges_used:
         a, b = key
         adjusted_edges_used[(scaling*a+occupancy_grid.resolution, scaling*b+occupancy_grid.resolution)] = edges_used[key]
 
-    draw_world(original_occupancy_grid, robot_locations, assignments, lines_plot=adjusted_edges_used, poses=robot_paths, line_multiplier=scaling)
+    draw_world(original_occupancy_grid, robot_locations, assignments, lines_plot=adjusted_edges_used, poses=[item for subpath in robot_paths for item in subpath], line_multiplier=scaling)
 
 
 
@@ -854,9 +893,8 @@ if __name__ == "__main__":
                         help='Which map to use.')
     args, unknown = parser.parse_known_args()
     """f = create_route([1, 2, 3, 4, 1], 10)
-    print(f(2))
-    print(f(4))
-    print(f(6))"""
+    for i in range(0, 10):
+        print(f(i))"""
     run(args)
     """try:
         run(args)

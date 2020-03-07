@@ -857,7 +857,7 @@ def divide(args, robot_locations, lap_time):
 
     # divide the cells between the robots.
     assignments = divide_grid(occupancy_grid, robot_locations)
-    if assignments == False:
+    if assignments is False:
         return False
 
     #draw_world(occupancy_grid, robot_locations, assignments)

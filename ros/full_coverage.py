@@ -201,11 +201,16 @@ def run(args):
         if not paths_found:
             robot_locations = [(i.pose[0] , i.pose[1]) for i in ground_truths]
             print(robot_locations)
+            sys.exit()
             movement_functions = divide(args, robot_locations, 450)
             if movement_functions == False:
                 start_time = time.time()
+                print(robot_locations)
+
+                print([i(0) for i in movement_functions])
+                sys.exit()
                 continue
-            print([i(0) for i in movement_functions])
+
             paths_found = True
         print(robot_locations)
 

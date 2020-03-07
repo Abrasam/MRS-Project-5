@@ -845,7 +845,11 @@ def divide(args, robot_locations, lap_time):
     print(original_occupancy_grid.values.shape)
     print(robot_locations)
     robot_locations = [original_occupancy_grid.get_index(i) for i in robot_locations]
-    #robot_locations = [(3, 24), (18, 16), (27, 3), (34, 12)]
+    robot_locations = [(48, 51), (80, 51), (74, 95)]
+    for i in range(len(robot_locations)):
+        a, b = robot_locations[i]
+        robot_locations[i] = (int(a/scaling), int(b/scaling))
+
     print(robot_locations)
 
     # divide the cells between the robots.
@@ -899,7 +903,7 @@ if __name__ == "__main__":
     """f = create_route([1, 2, 3, 4, 1], 10)
     for i in range(0, 10):
         print(f(i))"""
-    run(args)
+    divide(args, [], 450)
     """try:
         run(args)
     except rospy.ROSInterruptException:

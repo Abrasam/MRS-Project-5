@@ -212,6 +212,7 @@ def run(args):
             paths_found = True
         print(robot_locations)
         print([(i.pose[0] , i.pose[1]) for i in ground_truths])
+        print([i(0) for i in movement_functions])
         break
 
 if __name__ == '__main__':

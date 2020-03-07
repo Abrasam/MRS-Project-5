@@ -417,7 +417,7 @@ def calculate_mst(occupancy_grid, assignments, robot_location):
         elif assignments[i][j - 1] == region and edges[(i, j - 1)][LEFT] != None:
             edges[(i, j)][LEFT] = edges[(i, j - 1)][LEFT] + 1
 
-        if i == assignments.shape[1] - 1 or assignments[i, j + 1] != region:
+        if j == assignments.shape[1] - 1 or assignments[i, j + 1] != region:
             edges[(i, j)][RIGHT] = 0
         elif assignments[i][j + 1] == region and edges[(i, j + 1)][RIGHT] != None:
             edges[(i, j)][RIGHT] = edges[(i, j + 1)][RIGHT] + 1
@@ -440,7 +440,7 @@ def calculate_mst(occupancy_grid, assignments, robot_location):
         elif assignments[i][j - 1] == region and edges[(i, j - 1)][LEFT] != None:
             edges[(i, j)][LEFT] = edges[(i, j - 1)][LEFT] + 1
 
-        if i == assignments.shape[1] - 1 or assignments[i, j + 1] != region:
+        if j == assignments.shape[1] - 1 or assignments[i, j + 1] != region:
             edges[(i, j)][RIGHT] = 0
         elif assignments[i][j + 1] == region and edges[(i, j + 1)][RIGHT] != None:
             edges[(i, j)][RIGHT] = edges[(i, j + 1)][RIGHT] + 1

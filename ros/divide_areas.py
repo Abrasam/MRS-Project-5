@@ -279,7 +279,10 @@ def divide_grid(occupancy_grid, robots):
         (size * len(robots))
     upper_thres = (size + not_equal_split) / (size * len(robots))
 
-    for iter in range(50000):
+    limit = 50000
+    for iter in range(limit):
+        if iter == limit-1:
+            return False
         assignments = np.argmin(np.stack([i for i in Es], axis=2), axis=2) + 1
         assignments = np.where(occupancy_grid.values != FREE, 0, assignments)
 
@@ -854,6 +857,8 @@ def divide(args, robot_locations, lap_time):
 
     # divide the cells between the robots.
     assignments = divide_grid(occupancy_grid, robot_locations)
+    if assignments == False:
+        return False
 
     #draw_world(occupancy_grid, robot_locations, assignments)
                #,lines_plot=edges_used, poses=robot_paths)

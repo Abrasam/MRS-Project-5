@@ -157,6 +157,7 @@ def run(args):
         pass
 
     start_timer = time.time()
+    paths_found = False
     while not rospy.is_shutdown():
         # Make sure all measurements are ready.
         if not all(laser.ready for laser in lasers) or not all(groundtruth.ready for groundtruth in ground_truths):
@@ -196,12 +197,17 @@ def run(args):
 
         # Locations - currenlty use ground truth
         # TODO - must switch to localization result
-
-        robot_locations = [(i.pose[0] , i.pose[1]) for i in ground_truths]
+        time.sleep(1)
+        if not paths_found:
+            robot_locations = [(i.pose[0] , i.pose[1]) for i in ground_truths]
+            print(robot_locations)
+            movement_functions = divide(args, robot_locations, 450)
+            if movement_functions == False:
+                start_time = time.time()
+                continue
+            print([i(0) for i in movement_functions])
+            paths_found = True
         print(robot_locations)
-        movement_functions = divide(args, robot_locations, 450)
-        print([i(0) for i in movement_functions])
-        break
 
 
 if __name__ == '__main__':

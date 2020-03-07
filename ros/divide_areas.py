@@ -852,6 +852,7 @@ def divide(args, robot_locations, lap_time):
     for i in range(len(robot_locations)):
         a, b = robot_locations[i]
         robot_locations[i] = (int(a/scaling), int(b/scaling))
+        print(occupancy_grid.is_free(robot_locations[i])
 
     print(robot_locations)
 
@@ -908,7 +909,7 @@ if __name__ == "__main__":
     """f = create_route([1, 2, 3, 4, 1], 10)
     for i in range(0, 10):
         print(f(i))"""
-    divide(args, [], 450)
+    divide(args, [(-0.99165916, 0.24508765), (1.0083408, 0.24508765), (1.0988326, 1.9986352)], 450)
     """try:
         run(args)
     except rospy.ROSInterruptException:

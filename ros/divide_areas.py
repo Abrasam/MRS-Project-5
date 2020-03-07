@@ -750,9 +750,9 @@ def create_occupancy_grid(args):
     occupancy_grid[img > .9] = FREE
 
     # Transpose (undo ROS processing).
-    #occupancy_grid = occupancy_grid.T
+    occupancy_grid = occupancy_grid.T
     # Invert Y-axis.
-    #occupancy_grid = occupancy_grid[:, ::-1]
+    occupancy_grid = occupancy_grid[:, ::-1]
 
     original_occupancy_grid = OccupancyGrid(
         occupancy_grid, data['origin'], data['resolution'])
@@ -845,7 +845,7 @@ def divide(args, robot_locations, lap_time):
     print(original_occupancy_grid.values.shape)
     print(robot_locations)
     robot_locations = [original_occupancy_grid.get_index(i) for i in robot_locations]
-    robot_locations = [(48, 51), (80, 51), (74, 95)]
+    #robot_locations = [(48, 51), (80, 51), (74, 95)]
     for i in range(len(robot_locations)):
         a, b = robot_locations[i]
         robot_locations[i] = (int(a/scaling), int(b/scaling))

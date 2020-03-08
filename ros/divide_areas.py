@@ -812,7 +812,8 @@ def create_route(poses, robot_speed, occupancy_grid):
             # quarter of a circle turn
             total_distance += (np.pi*dist / 4.0)
 
-    time_between_each = total_distance / robot_speed
+    time = total_distance / robot_speed
+    time_between_each = time / (len(poses)-1)
 
 
     def position(t):

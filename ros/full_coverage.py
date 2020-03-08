@@ -25,8 +25,9 @@ from gazebo_msgs.msg import ModelStates
 from tf.transformations import euler_from_quaternion
 
 
-EPSILON = .2
+EPSILON = .05
 NUMBER_ROBOTS = 1
+ROBOT_SPEED = 0.05
 
 
 def braitenberg(front, front_left, front_right, left, right):
@@ -84,12 +85,10 @@ def feedback_linearized(pose, velocity, epsilon):
 def get_velocity(position, target, robot_speed):
 
   v = np.zeros_like(position)
-  print(position)
   position[0] += EPSILON*np.cos(position[2])
   position[1] += EPSILON*np.sin(position[2])
-  print(position)
   #
-  target_vel = np.array([robot_speed*np.cos(target[2]), robot_speed*np.sin(target[2])])
+  target_vel = np.array([robot_speed*np.cos(target[2]), robot_speed*np.sin(target[2]), 0])
 
   # Head towards the next point
   v = (target - position)
@@ -240,7 +239,7 @@ def run(args):
             # Transposing location
             robot_locations = [(i.pose[0] , i.pose[1]) for i in ground_truths]
             print(robot_locations)
-            movement_functions = divide(args, robot_locations[:NUMBER_ROBOTS], 0.2)
+            movement_functions = divide(args, robot_locations[:NUMBER_ROBOTS], ROBOT_SPEED)
             if movement_functions == False:
                 time.sleep(2)
                 start_time = time.time()
@@ -254,6 +253,8 @@ def run(args):
             print()
             for i in movement_functions:
                 print(i(0))
+        if not at_start:
+            pass
         # Follow path
         if not run_time_started:
             run_time_started = True
@@ -261,16 +262,16 @@ def run(args):
         for index in range(NUMBER_ROBOTS):
             robot = "tb3_%s" % index
             target = movement_functions[index](time.time() - run_time)
-            v = get_velocity(ground_truths[index].pose, target)
+            v = get_velocity(ground_truths[index].pose.copy(), target, ROBOT_SPEED)
 
-            u, w = feedback_linearized(ground_truths[index].pose, v, epsilon=EPSILON)
+            u, w = feedback_linearized(ground_truths[index].pose.copy(), v, epsilon=EPSILON)
             print("%.2f, %.2f, %.2f -- %.2f, %.2f, %.2f     u:%.2f, w:%.2f" % (ground_truths[index].pose[0], ground_truths[index].pose[1], ground_truths[index].pose[2], target[0], target[1], target[2], u, w))
 
             vel_msg = Twist()
             vel_msg.linear.x = u
             vel_msg.angular.z = w
             publishers[index].publish(vel_msg)
-            raw_input()
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Runs obstacle avoidance')

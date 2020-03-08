@@ -28,7 +28,7 @@ from tf.transformations import euler_from_quaternion
 import matplotlib.pylab as plt
 
 
-NUMBER_ROBOTS = 1
+NUMBER_ROBOTS = 3
 ROBOT_SPEED = 0.3
 
 ROBOT_RADIUS = 0.105 / 2.
@@ -284,7 +284,7 @@ def run(args):
                 # Keep moving for a bit
                 arrived[index] = True
                 if np.absolute((current_target[2])-current_position[2]) < (np.pi/36): # Within 5 degrees
-                    print("Next")
+                    #print("Next")
                     arrived[index] = False
                     targets[index] += 1
                     v = get_velocity(current_position.copy(), deepcopy(robot_paths[index][targets[index]]), ROBOT_SPEED)
@@ -293,11 +293,10 @@ def run(args):
                     #u=0.5
                     #w=0
                 else:
-                    print("Rotating")
+                    #print("Rotating")
                     # Rotate to correct orientation
                     u = 0
                     difference = ((current_target[2]%(2*np.pi)) - (current_position[2]%(2*np.pi)))%(2*np.pi)
-                    print(difference)
                     if difference < np.pi:
                         w = 0.2
                     else:
@@ -310,7 +309,7 @@ def run(args):
                 u, w = feedback_linearized(deepcopy(current_position), v, epsilon=EPSILON)
                 #u = 0.5
                 #w = 0
-            print("%.2f, %.2f, %.2f -- %.2f, %.2f, %.2f     u:%.2f, w:%.2f" % (current_position[0], current_position[1], current_position[2], current_target[0], current_target[1], current_target[2], u, w))
+            #print("%.2f, %.2f, %.2f -- %.2f, %.2f, %.2f     u:%.2f, w:%.2f" % (current_position[0], current_position[1], current_position[2], current_target[0], current_target[1], current_target[2], u, w))
             #time.sleep(0.5)
 
 

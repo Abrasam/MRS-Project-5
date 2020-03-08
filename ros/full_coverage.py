@@ -76,22 +76,26 @@ def feedback_linearized(pose, velocity, epsilon):
   # linearized point in front of the robot.
 
 
-  u = velocity[0]*np.cos(pose[2]) + velocity[2]*np.sin(pose[2])
-  w = (velocity[1]*np.cos(pose[2]) - velocity[1]*np.sin(pose[2])) / epsilon
+  u = velocity[0]*np.cos(pose[2]) + velocity[1]*np.sin(pose[2])
+  w = (velocity[1]*np.cos(pose[2]) - velocity[0]*np.sin(pose[2])) / epsilon
 
   return u, w
 
-def get_velocity(position, target):
+def get_velocity(position, target, robot_speed):
 
   v = np.zeros_like(position)
-
-
+  print(position)
+  position[0] += EPSILON*np.cos(position[2])
+  position[1] += EPSILON*np.sin(position[2])
+  print(position)
   #
+  target_vel = np.array([robot_speed*np.cos(target[2]), robot_speed*np.sin(target[2])])
 
   # Head towards the next point
   v = (target - position)
   v /= np.linalg.norm(v)
   v /= 5
+  v += target_vel
   return v
 
 class SimpleLaser(object):
@@ -236,7 +240,7 @@ def run(args):
             # Transposing location
             robot_locations = [(i.pose[0] , i.pose[1]) for i in ground_truths]
             print(robot_locations)
-            movement_functions = divide(args, robot_locations[:NUMBER_ROBOTS], 360000)
+            movement_functions = divide(args, robot_locations[:NUMBER_ROBOTS], 0.2)
             if movement_functions == False:
                 time.sleep(2)
                 start_time = time.time()

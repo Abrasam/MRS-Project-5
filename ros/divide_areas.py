@@ -792,13 +792,29 @@ def create_occupancy_grid(args):
     return original_occupancy_grid, occupancy_grid, cells_to_merge
 
 # Returns a function that tells the robot where it must be at any given time.
-def create_route(poses, time, occupancy_grid):
+def create_route(poses, robot_speed, occupancy_grid):
+
     for i in range(len(poses)):
         a, b, c = poses[i]
         a, b = occupancy_grid.get_position(a, b)
         print(a, b)
         poses[i] = (a, b, c)
-    time_between_each = time / (len(poses)-1)
+
+    total_distance = 0
+    for i in range(len(poses)-2):
+        f = poses[i]
+        t = poses[i+1]
+        dist = ((f[0]-t[0])**2 + (f[1]-t[1])**2)**0.5
+        if f[2] == t[2]:
+            # Staight line segment
+            total_distance += dist
+        else:
+            # quarter of a circle turn
+            total_distance += (np.pi*dist / 4.0)
+
+    time_between_each = total_distance / robot_speed
+
+
     def position(t):
         t = t % time
         segment = int(t / time_between_each)
@@ -841,7 +857,7 @@ def create_route(poses, time, occupancy_grid):
     #print(poses)
     return position
 
-def divide(args, robot_locations, lap_time):
+def divide(args, robot_locations, robot_speed):
 
 
     original_occupancy_grid, occupancy_grid, scaling = create_occupancy_grid(args)
@@ -898,7 +914,7 @@ def divide(args, robot_locations, lap_time):
         for a, b, c in poses:
             scaled_poses.append((a*scaling, b*scaling, c))
         robot_paths.append(scaled_poses)
-        pose_func = create_route(scaled_poses, lap_time, original_occupancy_grid)
+        pose_func = create_route(scaled_poses, robot_speed, original_occupancy_grid)
         """for i in range(100000):
             pose_func(i)"""
         routes.append(pose_func)

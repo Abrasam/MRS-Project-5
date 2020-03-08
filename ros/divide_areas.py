@@ -793,14 +793,18 @@ def create_occupancy_grid(args):
 
 # Returns a function that tells the robot where it must be at any given time.
 def create_route(poses, time, occupancy_grid):
-
+    for i in range(len(poses)):
+        a, b, c = poses[i]
+        a, b = occupancy_grid.get_position(a, b)
+        print(a, b)
+        poses[i] = (a, b, c)
     time_between_each = time / (len(poses)-1)
     def position(t):
         t = t % time
         segment = int(t / time_between_each)
         #print(segment)
-        start_pose = occupancy_grid.get_position(*poses[segment])
-        end_pose = occupancy_grid.get_position(*poses[segment + 1])
+        start_pose = poses[segment]
+        end_pose = poses[segment + 1]
         fraction = (t % time_between_each) / time_between_each
         if start_pose[2] == end_pose[2]:
             # straight line
@@ -859,10 +863,12 @@ def divide(args, robot_locations, lap_time):
             to_check = [(i-1, j), (i+1, j), (i, j+1), (i, j-1), (i-1, j-1), (i-1, j+1), (i+1, j-1), (i+1, j+1)]
             done=False
             for new in to_check:
-                if occupancy_grid.is_free_by_index(*new):
-                    robot_locations[r] = new
-                    done=True
-                    break
+                if new[0] >= 0 and new[0] < occupancy_grid.values.shape[0]:
+                    if new[1] >= 0 and new[1] < occupancy_grid.values.shape[1]:
+                        if occupancy_grid.is_free_by_index(*new):
+                            robot_locations[r] = new
+                            done=True
+                            break
             if not done:
                 # Abandon. Robots need to move around more.
                 return False
@@ -912,7 +918,7 @@ def divide(args, robot_locations, lap_time):
         a, b = key
         adjusted_edges_used[(scaling*a+occupancy_grid.resolution, scaling*b+occupancy_grid.resolution)] = edges_used[key]
 
-    draw_world(original_occupancy_grid, robot_locations, assignments, lines_plot=adjusted_edges_used, poses=[item for subpath in robot_paths for item in subpath], line_multiplier=scaling)
+    #draw_world(original_occupancy_grid, robot_locations, assignments, lines_plot=adjusted_edges_used, poses=[item for subpath in robot_paths for item in subpath], line_multiplier=scaling)
     return routes
 
 if __name__ == "__main__":

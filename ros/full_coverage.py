@@ -25,6 +25,10 @@ from gazebo_msgs.msg import ModelStates
 from tf.transformations import euler_from_quaternion
 
 
+EPSILON = .2
+NUMBER_ROBOTS = 1
+
+
 def braitenberg(front, front_left, front_right, left, right):
     u = 0.  # [m/s]
     w = 0.  # [rad/s] going counter-clockwise.
@@ -63,6 +67,32 @@ def rule_based(front, front_left, front_right, left, right):
         w = 0.2
     return u, w
 
+def feedback_linearized(pose, velocity, epsilon):
+  u = 0.  # [m/s]
+  w = 0.  # [rad/s] going counter-clockwise.
+
+  # Implement feedback-linearization to follow the velocity
+  # vector given as argument. Epsilon corresponds to the distance of
+  # linearized point in front of the robot.
+
+
+  u = velocity[0]*np.cos(pose[2]) + velocity[2]*np.sin(pose[2])
+  w = (velocity[1]*np.cos(pose[2]) - velocity[1]*np.sin(pose[2])) / epsilon
+
+  return u, w
+
+def get_velocity(position, target):
+
+  v = np.zeros_like(position)
+
+
+  #
+
+  # Head towards the next point
+  v = (target - position)
+  v /= np.linalg.norm(v)
+  v /= 5
+  return v
 
 class SimpleLaser(object):
     def __init__(self, name):
@@ -158,6 +188,7 @@ def run(args):
 
     start_timer = time.time()
     paths_found = False
+    run_time_started = False
     while not rospy.is_shutdown():
         # Make sure all measurements are ready.
         if not all(laser.ready for laser in lasers) or not all(groundtruth.ready for groundtruth in ground_truths):
@@ -166,7 +197,8 @@ def run(args):
             continue
 
         if time.time() - start_timer < 5: # Run around for 10 seconds
-            for index, robot in enumerate(["tb3_0", "tb3_1", "tb3_2"]):
+            for index in range(NUMBER_ROBOTS):
+                robot = "tb3_%s" % index
                 u, w = avoidance_method(*lasers[index].measurements)
                 vel_msg = Twist()
                 vel_msg.linear.x = u
@@ -181,28 +213,30 @@ def run(args):
                         pose_histories[index] = []
             rate_limiter.sleep()
             continue
-        # Stop all Robots
-        u, w = 0, 0
-        vel_msg = Twist()
-        vel_msg.linear.x = u
-        vel_msg.angular.z = w
-        for index, robot in enumerate(["tb3_0", "tb3_1", "tb3_2"]):
-            publishers[index].publish(vel_msg)
-            # Log groundtruth positions in /tmp/gazebo_exercise.txt
-            pose_histories[index].append(ground_truths[index].pose)
-            if len(pose_histories[index]) % 10:
-                with open('/tmp/gazebo_robot_' + robot + '.txt', 'a') as fp:
-                    #fp.write('\n'.join(','.join(str(v) for v in p) for p in pose_history) + '\n')
-                    pose_histories[index] = []
 
-        # Locations - currenlty use ground truth
-        # TODO - must switch to localization result
-        time.sleep(1)
         if not paths_found:
+            # Stop all Robots
+            u, w = 0, 0
+            vel_msg = Twist()
+            vel_msg.linear.x = u
+            vel_msg.angular.z = w
+            for index in range(NUMBER_ROBOTS):
+                robot = "tb3_%s" % index
+                publishers[index].publish(vel_msg)
+                # Log groundtruth positions in /tmp/gazebo_exercise.txt
+                pose_histories[index].append(ground_truths[index].pose)
+                if len(pose_histories[index]) % 10:
+                    with open('/tmp/gazebo_robot_' + robot + '.txt', 'a') as fp:
+                        #fp.write('\n'.join(','.join(str(v) for v in p) for p in pose_history) + '\n')
+                        pose_histories[index] = []
+
+            # Locations - currenlty use ground truth
+            # TODO - must switch to localization result
+            time.sleep(1)
             # Transposing location
             robot_locations = [(i.pose[0] , i.pose[1]) for i in ground_truths]
             print(robot_locations)
-            movement_functions = divide(args, robot_locations, 450)
+            movement_functions = divide(args, robot_locations[:NUMBER_ROBOTS], 360000)
             if movement_functions == False:
                 time.sleep(2)
                 start_time = time.time()
@@ -210,10 +244,28 @@ def run(args):
                 print("Fail")
                 continue
             paths_found = True
-        print(robot_locations)
-        print([(i.pose[0] , i.pose[1]) for i in ground_truths])
-        print([i(0) for i in movement_functions])
-        break
+            print(robot_locations)
+            for i in ground_truths:
+                print(i.pose)
+            print()
+            for i in movement_functions:
+                print(i(0))
+        # Follow path
+        if not run_time_started:
+            run_time_started = True
+            run_time = time.time()
+        for index in range(NUMBER_ROBOTS):
+            robot = "tb3_%s" % index
+            target = movement_functions[index](time.time() - run_time)
+            v = get_velocity(ground_truths[index].pose, target)
+
+            u, w = feedback_linearized(ground_truths[index].pose, v, epsilon=EPSILON)
+            print("%.2f, %.2f, %.2f -- %.2f, %.2f, %.2f     u:%.2f, w:%.2f" % (ground_truths[index].pose[0], ground_truths[index].pose[1], ground_truths[index].pose[2], target[0], target[1], target[2], u, w))
+
+            vel_msg = Twist()
+            vel_msg.linear.x = u
+            vel_msg.angular.z = w
+            publishers[index].publish(vel_msg)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Runs obstacle avoidance')

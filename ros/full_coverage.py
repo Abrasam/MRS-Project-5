@@ -283,27 +283,35 @@ def run(args):
             if distance < ROBOT_RADIUS or arrived[index]:
                 # Keep moving for a bit
                 arrived[index] = True
-                if np.absolute((current_target[2]+np.pi/2)-current_position[2]) < (np.pi/36): # Within 5 degrees
+                if np.absolute((current_target[2])-current_position[2]) < (np.pi/36): # Within 5 degrees
                     print("Next")
                     arrived[index] = False
                     targets[index] += 1
                     v = get_velocity(current_position.copy(), deepcopy(robot_paths[index][targets[index]]), ROBOT_SPEED)
-                    #u, w = feedback_linearized(current_position.copy(), v, epsilon=EPSILON)
-                    u=0.5
-                    w=0
+                    #v = np.array([1, 0])
+                    u, w = feedback_linearized(current_position.copy(), v, epsilon=EPSILON)
+                    #u=0.5
+                    #w=0
                 else:
                     print("Rotating")
                     # Rotate to correct orientation
                     u = 0
-                    w = 0.2 if ((current_target[2]+np.pi/2) - current_position[2]) > 0 and (current_target[2] - current_position[2]) < np.pi else -0.2
+                    difference = ((current_target[2]%(2*np.pi)) - (current_position[2]%(2*np.pi)))%(2*np.pi)
+                    print(difference)
+                    if difference < np.pi:
+                        w = 0.2
+                    else:
+                        w = -0.2
+                    #w = 0.2 if ((current_target[2]) - current_position[2]) > 0 and (current_target[2] - current_position[2]) < np.pi else -0.2
             else:
                 print("Moving")
                 v = get_velocity(deepcopy(current_position), deepcopy(current_target), ROBOT_SPEED)
+                #v = np.array([1, 0])
                 u, w = feedback_linearized(deepcopy(current_position), v, epsilon=EPSILON)
-                u = 0.5
-                w = 0
+                #u = 0.5
+                #w = 0
             print("%.2f, %.2f, %.2f -- %.2f, %.2f, %.2f     u:%.2f, w:%.2f" % (current_position[0], current_position[1], current_position[2], current_target[0], current_target[1], current_target[2], u, w))
-            time.sleep(0.5)
+            #time.sleep(0.5)
 
 
             """target = movement_functions[index](time.time() - run_time)

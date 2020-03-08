@@ -1082,6 +1082,10 @@ def divide(args, robot_locations, robot_speed):
         scaled_poses = []
         for a, b, c in poses:
             a, b = original_occupancy_grid.get_position(a*scaling, b*scaling)
+            # Flip C in diagonal and vertical to match with Gazebo.
+            c += np.pi/2
+            if c > np.pi:
+                c -= np.pi
             scaled_poses.append((a, b, c))
         robot_paths.append(scaled_poses)
 
@@ -1105,7 +1109,7 @@ def divide(args, robot_locations, robot_speed):
         a, b = key
         adjusted_edges_used[(scaling*a+occupancy_grid.resolution, scaling*b+occupancy_grid.resolution)] = edges_used[key]
 
-    #draw_world(original_occupancy_grid, robot_locations, assignments, lines_plot=adjusted_edges_used, poses=[item for subpath in robot_paths for item in subpath], line_multiplier=scaling)
+    #draw_world(original_occupancy_grid, robot_locations, assignments, lines_plot=adjusted_edges_used, line_multiplier=scaling)
     return robot_paths
 
 if __name__ == "__main__":

@@ -29,7 +29,7 @@ import matplotlib.pylab as plt
 EPSILON = .1
 NUMBER_ROBOTS = 1
 ROBOT_SPEED = 0.1
-
+12
 
 def braitenberg(front, front_left, front_right, left, right):
     u = 0.  # [m/s]

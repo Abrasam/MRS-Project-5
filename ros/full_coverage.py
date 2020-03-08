@@ -24,10 +24,11 @@ from sensor_msgs.msg import LaserScan
 from gazebo_msgs.msg import ModelStates
 from tf.transformations import euler_from_quaternion
 
+import matplotlib.pylab as plt
 
-EPSILON = .05
+EPSILON = .1
 NUMBER_ROBOTS = 1
-ROBOT_SPEED = 0.05
+ROBOT_SPEED = 0.01
 
 
 def braitenberg(front, front_left, front_right, left, right):
@@ -174,7 +175,7 @@ def run(args):
     avoidance_method = globals()[args.mode]
 
     # Update control every 100 ms.
-    rate_limiter = rospy.Rate(100)
+    rate_limiter = rospy.Rate(10)
     publishers = []
     lasers = []
     ground_truths = []
@@ -188,6 +189,12 @@ def run(args):
         pose_histories.append([])
     with open('/tmp/gazebo_exercise.txt', 'w'):
         pass
+
+    # plotting values
+    times = []
+    trajectory = [[], []]
+    poses = [[], []]
+    counter = 0
 
     start_timer = time.time()
     paths_found = False
@@ -253,8 +260,7 @@ def run(args):
             print()
             for i in movement_functions:
                 print(i(0))
-        if not at_start:
-            pass
+
         # Follow path
         if not run_time_started:
             run_time_started = True
@@ -266,11 +272,27 @@ def run(args):
 
             u, w = feedback_linearized(ground_truths[index].pose.copy(), v, epsilon=EPSILON)
             print("%.2f, %.2f, %.2f -- %.2f, %.2f, %.2f     u:%.2f, w:%.2f" % (ground_truths[index].pose[0], ground_truths[index].pose[1], ground_truths[index].pose[2], target[0], target[1], target[2], u, w))
-
+            times.append(time.time())
+            trajectory[0].append(target[0])
+            trajectory[1].append(target[1])
+            poses.append(robot_locations[index])
+            counter += 1
             vel_msg = Twist()
             vel_msg.linear.x = u
             vel_msg.angular.z = w
             publishers[index].publish(vel_msg)
+        if counter % 100000 == 0:
+            fig = plt.figure()
+            plt.axis('equal')
+            plt.xlabel('x')
+            plt.ylabel('y')
+            plt.xlim([-4, 4])
+            plt.ylim([-4, 4])
+
+            plt.scatter(trajectory[0], trajectory[1], c = 'b', linewidths=0, edgecolors='face')
+            run_time_pause = time.time() - run_time
+            plt.show()
+            run_time = time.time()-run_time_pause
 
 
 if __name__ == '__main__':

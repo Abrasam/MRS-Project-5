@@ -13,6 +13,7 @@ import scipy.special
 from divide_areas import divide
 import time
 
+from copy import deepcopy
 
 # Robot motion commands:
 # http://docs.ros.org/api/geometry_msgs/html/msg/Twist.html
@@ -26,12 +27,12 @@ from tf.transformations import euler_from_quaternion
 
 import matplotlib.pylab as plt
 
-EPSILON = .1
+
 NUMBER_ROBOTS = 1
-ROBOT_SPEED = 0.1
+ROBOT_SPEED = 0.3
 
 ROBOT_RADIUS = 0.105 / 2.
-
+EPSILON = ROBOT_RADIUS
 
 def braitenberg(front, front_left, front_right, left, right):
     u = 0.  # [m/s]
@@ -88,16 +89,16 @@ def feedback_linearized(pose, velocity, epsilon):
 def get_velocity(position, target, robot_speed):
 
   v = np.zeros_like(position)
-  position[0] += EPSILON*np.cos(position[2])
-  position[1] += EPSILON*np.sin(position[2])
+  #position[0] += EPSILON*np.cos(position[2])
+  #position[1] += EPSILON*np.sin(position[2])
   #
-  target_vel = np.array([robot_speed*np.cos(target[2]), robot_speed*np.sin(target[2]), 0])
+  #target_vel = np.array([robot_speed*np.cos(target[2]), robot_speed*np.sin(target[2]), 0])
 
   # Head towards the next point
   v = (target - position)
   v /= np.linalg.norm(v)
   v /= 2
-  v += target_vel
+  #v += target_vel
   return v
 
 class SimpleLaser(object):
@@ -199,6 +200,7 @@ def run(args):
     counter = 0
 
     targets = [0] * NUMBER_ROBOTS
+    arrived = [False] * NUMBER_ROBOTS
 
     start_timer = time.time()
     paths_found = False
@@ -272,24 +274,36 @@ def run(args):
         for index in range(NUMBER_ROBOTS):
             robot = "tb3_%s" % index
 
-            current_target = targets[index]
+            current_target = robot_paths[index][targets[index]]
             current_position = ground_truths[index].pose.copy()
             # Check if at target.
             distance = ((current_target[0] - current_position[0]) ** 2
                      +  (current_target[1] - current_position[1]) ** 2) ** 0.5
-            if distance < ROBOT_RADIUS:
-                if np.absolute(current_target[2]-current_position[2]) < (np.pi/9): # Within 20 degrees
+
+            if distance < ROBOT_RADIUS or arrived[index]:
+                # Keep moving for a bit
+                arrived[index] = True
+                if np.absolute((current_target[2]+np.pi/2)-current_position[2]) < (np.pi/36): # Within 5 degrees
+                    print("Next")
+                    arrived[index] = False
                     targets[index] += 1
-                    v = get_velocity(current_position.copy(), targets[index].copy(), ROBOT_SPEED)
-                    u, w = feedback_linearized(current_position.copy(), v, epsilon=EPSILON)
+                    v = get_velocity(current_position.copy(), deepcopy(robot_paths[index][targets[index]]), ROBOT_SPEED)
+                    #u, w = feedback_linearized(current_position.copy(), v, epsilon=EPSILON)
+                    u=0.5
+                    w=0
                 else:
+                    print("Rotating")
                     # Rotate to correct orientation
                     u = 0
-                    w = (current_target[2] - current_position[2]) / 2
+                    w = 0.2 if ((current_target[2]+np.pi/2) - current_position[2]) > 0 and (current_target[2] - current_position[2]) < np.pi else -0.2
             else:
-                v = get_velocity(current_position.copy(), targets[index].copy(), ROBOT_SPEED)
-                u, w = feedback_linearized(current_position.copy(), v, epsilon=EPSILON)
-
+                print("Moving")
+                v = get_velocity(deepcopy(current_position), deepcopy(current_target), ROBOT_SPEED)
+                u, w = feedback_linearized(deepcopy(current_position), v, epsilon=EPSILON)
+                u = 0.5
+                w = 0
+            print("%.2f, %.2f, %.2f -- %.2f, %.2f, %.2f     u:%.2f, w:%.2f" % (current_position[0], current_position[1], current_position[2], current_target[0], current_target[1], current_target[2], u, w))
+            time.sleep(0.5)
 
 
             """target = movement_functions[index](time.time() - run_time)
@@ -307,7 +321,7 @@ def run(args):
             vel_msg.linear.x = u
             vel_msg.angular.z = w
             publishers[index].publish(vel_msg)
-        if counter % 100000 == 0:
+        """if counter % 100000 == 0:
             fig = plt.figure()
             plt.axis('equal')
             plt.xlabel('x')
@@ -320,7 +334,7 @@ def run(args):
 
             run_time_pause = time.time() - run_time
             plt.show()
-            run_time = time.time()-run_time_pause
+            run_time = time.time()-run_time_pause"""
 
 
 if __name__ == '__main__':

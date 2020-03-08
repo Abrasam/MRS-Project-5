@@ -283,8 +283,8 @@ def run(args):
             if distance < ROBOT_RADIUS or arrived[index]:
                 # Keep moving for a bit
                 arrived[index] = True
-                if np.absolute((current_target[2])-current_position[2]) < (np.pi/36): # Within 5 degrees
-                    #print("Next")
+                if np.absolute((current_target[2])-current_position[2]) < (0.05): # Within 3 degrees
+
                     arrived[index] = False
                     targets[index] += 1
                     v = get_velocity(current_position.copy(), deepcopy(robot_paths[index][targets[index]]), ROBOT_SPEED)
@@ -298,9 +298,9 @@ def run(args):
                     u = 0
                     difference = ((current_target[2]%(2*np.pi)) - (current_position[2]%(2*np.pi)))%(2*np.pi)
                     if difference < np.pi:
-                        w = 0.2
+                        w = 0.4
                     else:
-                        w = -0.2
+                        w = -0.4
                     #w = 0.2 if ((current_target[2]) - current_position[2]) > 0 and (current_target[2] - current_position[2]) < np.pi else -0.2
             else:
                 print("Moving")

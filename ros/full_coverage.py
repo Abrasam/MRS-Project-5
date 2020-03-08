@@ -29,7 +29,9 @@ import matplotlib.pylab as plt
 EPSILON = .1
 NUMBER_ROBOTS = 1
 ROBOT_SPEED = 0.1
-12
+
+ROBOT_RADIUS = 0.105 / 2.
+
 
 def braitenberg(front, front_left, front_right, left, right):
     u = 0.  # [m/s]
@@ -273,9 +275,24 @@ def run(args):
             current_target = targets[index]
             current_position = ground_truths[index].pose.copy()
             # Check if at target.
-            distance = current_target[0] -
+            distance = ((current_target[0] - current_position[0]) ** 2
+                     +  (current_target[1] - current_position[1]) ** 2) ** 0.5
+            if distance < ROBOT_RADIUS:
+                if np.absolute(current_target[2]-current_position[2]) < (np.pi/9): # Within 20 degrees
+                    targets[index] += 1
+                    v = get_velocity(current_position.copy(), targets[index].copy(), ROBOT_SPEED)
+                    u, w = feedback_linearized(current_position.copy(), v, epsilon=EPSILON)
+                else:
+                    # Rotate to correct orientation
+                    u = 0
+                    w = (current_target[2] - current_position[2]) / 2
+            else:
+                v = get_velocity(current_position.copy(), targets[index].copy(), ROBOT_SPEED)
+                u, w = feedback_linearized(current_position.copy(), v, epsilon=EPSILON)
 
-            target = movement_functions[index](time.time() - run_time)
+
+
+            """target = movement_functions[index](time.time() - run_time)
             v = get_velocity(ground_truths[index].pose.copy(), target, ROBOT_SPEED)
 
             u, w = feedback_linearized(ground_truths[index].pose.copy(), v, epsilon=EPSILON)
@@ -285,7 +302,7 @@ def run(args):
             trajectory[1].append(target[1])
             poses[0].append(ground_truths[index].pose[0])
             poses[1].append(ground_truths[index].pose[1])
-            counter += 1
+            counter += 1"""
             vel_msg = Twist()
             vel_msg.linear.x = u
             vel_msg.angular.z = w

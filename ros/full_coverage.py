@@ -266,6 +266,7 @@ def run(args):
             vel_msg.linear.x = u
             vel_msg.angular.z = w
             publishers[index].publish(vel_msg)
+            raw_input()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Runs obstacle avoidance')

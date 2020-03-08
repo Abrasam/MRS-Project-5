@@ -196,6 +196,8 @@ def run(args):
     poses = [[], []]
     counter = 0
 
+    targets = [0] * NUMBER_ROBOTS
+
     start_timer = time.time()
     paths_found = False
     run_time_started = False
@@ -246,8 +248,8 @@ def run(args):
             # Transposing location
             robot_locations = [(i.pose[0] , i.pose[1]) for i in ground_truths]
             print(robot_locations)
-            movement_functions = divide(args, robot_locations[:NUMBER_ROBOTS], ROBOT_SPEED)
-            if movement_functions == False:
+            robot_paths = divide(args, robot_locations[:NUMBER_ROBOTS], ROBOT_SPEED)
+            if robot_paths == False:
                 time.sleep(2)
                 start_time = time.time()
                 print(robot_locations)
@@ -258,8 +260,8 @@ def run(args):
             for i in ground_truths:
                 print(i.pose)
             print()
-            for i in movement_functions:
-                print(i(0))
+            for i in robot_paths:
+                print(i[0])
 
         # Follow path
         if not run_time_started:
@@ -267,6 +269,12 @@ def run(args):
             run_time = time.time()
         for index in range(NUMBER_ROBOTS):
             robot = "tb3_%s" % index
+
+            current_target = targets[index]
+            current_position = ground_truths[index].pose.copy()
+            # Check if at target.
+            distance = current_target[0] -
+
             target = movement_functions[index](time.time() - run_time)
             v = get_velocity(ground_truths[index].pose.copy(), target, ROBOT_SPEED)
 

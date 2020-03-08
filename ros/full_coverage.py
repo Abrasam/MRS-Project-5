@@ -28,7 +28,7 @@ import matplotlib.pylab as plt
 
 EPSILON = .1
 NUMBER_ROBOTS = 1
-ROBOT_SPEED = 0.01
+ROBOT_SPEED = 0.1
 
 
 def braitenberg(front, front_left, front_right, left, right):
@@ -94,7 +94,7 @@ def get_velocity(position, target, robot_speed):
   # Head towards the next point
   v = (target - position)
   v /= np.linalg.norm(v)
-  v /= 5
+  v /= 2
   v += target_vel
   return v
 
@@ -206,7 +206,7 @@ def run(args):
             start_timer = time.time()
             continue
 
-        if time.time() - start_timer < 5: # Run around for 10 seconds
+        if time.time() - start_timer < 2: # Run around for 10 seconds
             for index in range(NUMBER_ROBOTS):
                 robot = "tb3_%s" % index
                 u, w = avoidance_method(*lasers[index].measurements)
@@ -275,7 +275,8 @@ def run(args):
             times.append(time.time())
             trajectory[0].append(target[0])
             trajectory[1].append(target[1])
-            poses.append(robot_locations[index])
+            poses[0].append(ground_truths[index].pose[0])
+            poses[1].append(ground_truths[index].pose[1])
             counter += 1
             vel_msg = Twist()
             vel_msg.linear.x = u
@@ -290,6 +291,8 @@ def run(args):
             plt.ylim([-4, 4])
 
             plt.scatter(trajectory[0], trajectory[1], c = 'b', linewidths=0, edgecolors='face')
+            plt.scatter(poses[0], poses[1], c = 'r', linewidths=0, edgecolors='face')
+
             run_time_pause = time.time() - run_time
             plt.show()
             run_time = time.time()-run_time_pause

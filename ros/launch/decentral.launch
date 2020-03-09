@@ -1,0 +1,4 @@
+<launch>
+
+	<node pkg="project" type="decentral.py" name="decentral" args="" output="screen"></node>
+</launch>

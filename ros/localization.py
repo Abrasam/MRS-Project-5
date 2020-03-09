@@ -332,6 +332,7 @@ def run(args):
   # Update control every 100 ms.
   rate_limiter = rospy.Rate(10)
   particle_publisher = [rospy.Publisher('/particles'+str(i), PointCloud, queue_size=1) for i in range(NUM_ROBOTS)]
+  position_publisher = [rospy.Publisher('/locpos'+str(i), Point32, queue_size=1) for i in range(NUM_ROBOTS)]
   laser = [SimpleLaser("tb3_"+str(i)) for i in range(NUM_ROBOTS)]
   motion = [Motion("tb3_"+str(i)) for i in range(NUM_ROBOTS)]
   # Keep track of groundtruth position for plotting purposes.
@@ -412,6 +413,11 @@ def run(args):
       # Log groundtruth and estimated positions in /tmp/gazebo_exercise.txt
       poses = np.array([p.pose for p in particles[i]], dtype=np.float32)
       median_pose = np.median(poses, axis=0)
+      pt = Point32()
+      pt.x = median_pose[X]
+      pt.y = median_pose[Y]
+      pt.z = median_pose[YAW]
+      position_publisher[i].publish(pt)
       pose_history[i].append(np.concatenate([groundtruth[i].pose, median_pose], axis=0))
       if len(pose_history[i]) % 10:
         with open('/tmp/gazebo_robot_tb3_' + str(i) + '.txt', 'a') as fp:

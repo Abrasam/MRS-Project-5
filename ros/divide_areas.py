@@ -920,6 +920,21 @@ def create_occupancy_grid(args):
     occupancy_grid[img < .1] = OCCUPIED
     occupancy_grid[img > .9] = FREE
 
+    # Expand the walls so that the robots have more clearance
+    for _ in range(2):
+        expanded_occupancy_grid = occupancy_grid.copy()
+        for i in range(occupancy_grid.shape[0]):
+            for j in range(occupancy_grid.shape[1]):
+                free = True
+                for a in range(i-1, i+2):
+                    for b in range(j-1, j+2):
+                        if a < 0 or b < 0 or a > occupancy_grid.shape[0]-1 or b > occupancy_grid.shape[1]-1:
+                            continue
+                        if occupancy_grid[a, b] != FREE:
+                            free = False
+                expanded_occupancy_grid[i, j] = FREE if free else OCCUPIED
+        occupancy_grid = expanded_occupancy_grid.copy()
+
     # Transpose (undo ROS processing).
     occupancy_grid = occupancy_grid.T
     # Invert Y-axis.
@@ -1110,7 +1125,7 @@ def divide(args, robot_locations, robot_speed):
         a, b = key
         adjusted_edges_used[(scaling*a+occupancy_grid.resolution, scaling*b+occupancy_grid.resolution)] = edges_used[key]
 
-    #draw_world(original_occupancy_grid, robot_locations, assignments, lines_plot=adjusted_edges_used, line_multiplier=scaling)
+    draw_world(original_occupancy_grid, robot_locations, assignments, lines_plot=adjusted_edges_used, line_multiplier=scaling)
     return robot_paths
 
 if __name__ == "__main__":

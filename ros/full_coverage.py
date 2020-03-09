@@ -289,6 +289,7 @@ def run(args):
                     #print("Next")
                     arrived[index] = False
                     targets[index] += 1
+                    targets[index] %= len(robot_paths[index])
                     current_target = robot_paths[index][targets[index]]
                     #print(current_target)
                     v = get_velocity(current_position.copy(), deepcopy(current_target), ROBOT_SPEED)

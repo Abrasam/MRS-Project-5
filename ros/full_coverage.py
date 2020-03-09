@@ -80,7 +80,7 @@ def feedback_linearized(pose, velocity, epsilon):
   # vector given as argument. Epsilon corresponds to the distance of
   # linearized point in front of the robot.
 
-  print("velocity", velocity)
+  #print("velocity", velocity)
   u = velocity[0]*np.cos(pose[2]) + velocity[1]*np.sin(pose[2])
   w = (velocity[1]*np.cos(pose[2]) - velocity[0]*np.sin(pose[2])) / epsilon
 
@@ -99,7 +99,7 @@ def get_velocity(position, target, robot_speed):
   # Head towards the next point
   v = (target - position)
   v /= np.linalg.norm(v[:2])
-  v /= 5
+  v /= 3
   #v += target_vel
   return v
 
@@ -215,7 +215,7 @@ def run(args):
             continue
 
         if time.time() - start_timer < 2: # Run around for 10 seconds
-            for index in range(2, NUMBER_ROBOTS):
+            for index in range(NUMBER_ROBOTS):
                 robot = "tb3_%s" % index
                 u, w = avoidance_method(*lasers[index].measurements)
                 vel_msg = Twist()
@@ -238,7 +238,7 @@ def run(args):
             vel_msg = Twist()
             vel_msg.linear.x = u
             vel_msg.angular.z = w
-            for index in range(2, NUMBER_ROBOTS):
+            for index in range(NUMBER_ROBOTS):
                 robot = "tb3_%s" % index
                 publishers[index].publish(vel_msg)
                 # Log groundtruth positions in /tmp/gazebo_exercise.txt
@@ -273,7 +273,7 @@ def run(args):
         if not run_time_started:
             run_time_started = True
             run_time = time.time()
-        for index in range(2, NUMBER_ROBOTS):
+        for index in range(NUMBER_ROBOTS):
             robot = "tb3_%s" % index
 
             current_target = robot_paths[index][targets[index]]
@@ -286,34 +286,38 @@ def run(args):
                 # Keep moving for a bit
                 arrived[index] = True
                 if np.absolute((current_target[2])-current_position[2]) < (0.03): # Within 3 degrees
-                    print("Next")
+                    #print("Next")
                     arrived[index] = False
                     targets[index] += 1
                     current_target = robot_paths[index][targets[index]]
+                    #print(current_target)
                     v = get_velocity(current_position.copy(), deepcopy(current_target), ROBOT_SPEED)
                     #v = np.array([1, 0])
                     u, w = feedback_linearized(current_position.copy(), v, epsilon=EPSILON)
                     #u=0.5
                     #w=0
                 else:
-                    print("Rotating")
+                    #print("Rotating")
                     # Rotate to correct orientation
                     u = 0
                     difference = ((current_target[2]%(2*np.pi)) - (current_position[2]%(2*np.pi)))%(2*np.pi)
+                    print(difference)
                     if difference < np.pi:
-                        w = 0.4
+                        # Difference heading to 0
+                        w = max(0.75, difference)
                     else:
-                        w = -0.4
+                        remaining = 2*np.pi - difference
+                        w = -1*max(0.75, remaining)
                     #w = 0.2 if ((current_target[2]) - current_position[2]) > 0 and (current_target[2] - current_position[2]) < np.pi else -0.2
             else:
-                print("Moving")
+                #print("Moving")
                 v = get_velocity(deepcopy(current_position), deepcopy(current_target), ROBOT_SPEED)
                 #v = np.array([1, 0])
                 u, w = feedback_linearized(deepcopy(current_position), v, epsilon=EPSILON)
                 #u = 0.5
                 #w = 0
 
-            print("%.2f, %.2f, %.2f -- %.2f, %.2f, %.2f     u:%.2f, w:%.2f" % (current_position[0], current_position[1], current_position[2], current_target[0], current_target[1], current_target[2], u, w))
+            #print("%.2f, %.2f, %.2f -- %.2f, %.2f, %.2f     u:%.2f, w:%.2f" % (current_position[0], current_position[1], current_position[2], current_target[0], current_target[1], current_target[2], u, w))
 
             """if u < 0 and targets[index] > 5:
                 vel_msg = Twist()

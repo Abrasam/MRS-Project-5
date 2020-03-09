@@ -1086,7 +1086,7 @@ def divide(args, robot_locations, robot_speed):
             # Flip C in diagonal and vertical to match with Gazebo.
             c += np.pi/2
             if c > np.pi:
-                c -= np.pi
+                c -= 2*np.pi
             scaled_poses.append((a, b, c))
         robot_paths.append(scaled_poses)
 

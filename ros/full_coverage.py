@@ -28,7 +28,7 @@ from tf.transformations import euler_from_quaternion
 import matplotlib.pylab as plt
 
 
-NUMBER_ROBOTS = 2
+NUMBER_ROBOTS = 3
 ROBOT_SPEED = 0.3
 
 ROBOT_RADIUS = 0.105 / 2.
@@ -80,10 +80,12 @@ def feedback_linearized(pose, velocity, epsilon):
   # vector given as argument. Epsilon corresponds to the distance of
   # linearized point in front of the robot.
 
-
+  print("velocity", velocity)
   u = velocity[0]*np.cos(pose[2]) + velocity[1]*np.sin(pose[2])
   w = (velocity[1]*np.cos(pose[2]) - velocity[0]*np.sin(pose[2])) / epsilon
 
+  #u = velocity[0]*np.cos(pose[2]) + velocity[1]*np.sin(pose[2])
+  #w = velocity[2]
   return u, w
 
 def get_velocity(position, target, robot_speed):
@@ -96,8 +98,8 @@ def get_velocity(position, target, robot_speed):
 
   # Head towards the next point
   v = (target - position)
-  v /= np.linalg.norm(v)
-  v /= 2
+  v /= np.linalg.norm(v[:2])
+  v /= 5
   #v += target_vel
   return v
 
@@ -213,7 +215,7 @@ def run(args):
             continue
 
         if time.time() - start_timer < 2: # Run around for 10 seconds
-            for index in range(1, NUMBER_ROBOTS):
+            for index in range(2, NUMBER_ROBOTS):
                 robot = "tb3_%s" % index
                 u, w = avoidance_method(*lasers[index].measurements)
                 vel_msg = Twist()
@@ -236,7 +238,7 @@ def run(args):
             vel_msg = Twist()
             vel_msg.linear.x = u
             vel_msg.angular.z = w
-            for index in range(1, NUMBER_ROBOTS):
+            for index in range(2, NUMBER_ROBOTS):
                 robot = "tb3_%s" % index
                 publishers[index].publish(vel_msg)
                 # Log groundtruth positions in /tmp/gazebo_exercise.txt
@@ -271,7 +273,7 @@ def run(args):
         if not run_time_started:
             run_time_started = True
             run_time = time.time()
-        for index in range(1, NUMBER_ROBOTS):
+        for index in range(2, NUMBER_ROBOTS):
             robot = "tb3_%s" % index
 
             current_target = robot_paths[index][targets[index]]
@@ -283,11 +285,12 @@ def run(args):
             if distance < ROBOT_RADIUS or arrived[index]:
                 # Keep moving for a bit
                 arrived[index] = True
-                if np.absolute((current_target[2])-current_position[2]) < (0.05): # Within 3 degrees
+                if np.absolute((current_target[2])-current_position[2]) < (0.03): # Within 3 degrees
                     print("Next")
                     arrived[index] = False
                     targets[index] += 1
-                    v = get_velocity(current_position.copy(), deepcopy(robot_paths[index][targets[index]]), ROBOT_SPEED)
+                    current_target = robot_paths[index][targets[index]]
+                    v = get_velocity(current_position.copy(), deepcopy(current_target), ROBOT_SPEED)
                     #v = np.array([1, 0])
                     u, w = feedback_linearized(current_position.copy(), v, epsilon=EPSILON)
                     #u=0.5
@@ -309,7 +312,16 @@ def run(args):
                 u, w = feedback_linearized(deepcopy(current_position), v, epsilon=EPSILON)
                 #u = 0.5
                 #w = 0
+
             print("%.2f, %.2f, %.2f -- %.2f, %.2f, %.2f     u:%.2f, w:%.2f" % (current_position[0], current_position[1], current_position[2], current_target[0], current_target[1], current_target[2], u, w))
+
+            """if u < 0 and targets[index] > 5:
+                vel_msg = Twist()
+                vel_msg.linear.x = 0
+                vel_msg.angular.z = 0
+                publishers[index].publish(vel_msg)
+                import sys
+                sys.exit()"""
             #time.sleep(0.5)
 
 

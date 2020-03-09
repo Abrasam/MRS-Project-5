@@ -33,9 +33,6 @@ def trade_regions(grid, for_sale, rob_a_pos, rob_b_pos):
   a = Trader(grid)
   b = Trader(grid)
 
-  total_for_sale = np.count_nonzero(for_sale)
-  sold = 0
-
   def add_to_frontier(pos, us, other):
 
     # check in bounds
@@ -43,7 +40,7 @@ def trade_regions(grid, for_sale, rob_a_pos, rob_b_pos):
       return
 
     # check is valid in grid, and not already in frontier or owned
-    if not state.for_sale[pos] or state.grid[pos] or us.frontier_grid[pos] or us.owned[pos]:
+    if not state.for_sale[pos] or us.frontier_grid[pos] or us.owned[pos]:
       return
 
     us.frontier.append(pos)
@@ -67,6 +64,8 @@ def trade_regions(grid, for_sale, rob_a_pos, rob_b_pos):
 
     if other.owned[pos]:
       other.owned[pos] = 0
+      other.frontier.append(pos)
+      other.frontier_grid[pos] = True
       other.total -= 1
       state.sold -= 1
 
@@ -85,9 +84,9 @@ def trade_regions(grid, for_sale, rob_a_pos, rob_b_pos):
            check_owns_with_bounds((pos[0] - 1, pos[1]), us) or check_owns_with_bounds((pos[0], pos[1] - 1), us)
 
   # It works for our map, probably not a good general solution because of e.g. 1 wide tunnels
-  def wont_cutoff_other(pos, us, other):
+  def will_cutoff_other(pos, us, other):
     if not other.owned[pos]:
-      return True
+      return False
 
     neighbours_owned = 0
     neighbours_owned += check_owns_with_bounds((pos[0] + 1, pos[1]), other)
@@ -96,34 +95,36 @@ def trade_regions(grid, for_sale, rob_a_pos, rob_b_pos):
     neighbours_owned += check_owns_with_bounds((pos[0], pos[1] - 1), other)
 
     if neighbours_owned <= 1:
-      return True
+      return False
 
     # Basic checks only here, could be more advanced
+    # Corners
     if check_owns_with_bounds((pos[0] + 1, pos[1]), other) and check_owns_with_bounds((pos[0], pos[1] + 1), other) and \
         not check_owns_with_bounds((pos[0] + 1, pos[1] + 1), other):
-      return False
+      return True
 
     if check_owns_with_bounds((pos[0] - 1, pos[1]), other) and check_owns_with_bounds((pos[0], pos[1] + 1), other) and \
         not check_owns_with_bounds((pos[0] - 1, pos[1] + 1), other):
-      return False
+      return True
 
     if check_owns_with_bounds((pos[0] + 1, pos[1]), other) and check_owns_with_bounds((pos[0], pos[1] - 1), other) and \
         not check_owns_with_bounds((pos[0] + 1, pos[1] - 1), other):
-      return False
+      return True
 
     if check_owns_with_bounds((pos[0] - 1, pos[1]), other) and check_owns_with_bounds((pos[0], pos[1] - 1), other) and \
         not check_owns_with_bounds((pos[0] - 1, pos[1] - 1), other):
-      return False
+      return True
 
+    # Opposites. We don't need to check more because of the corner checks already done
     if check_owns_with_bounds((pos[0] - 1, pos[1]), other) and check_owns_with_bounds((pos[0] + 1, pos[1]), other) and \
         not check_owns_with_bounds((pos[0], pos[1] + 1), other) and not check_owns_with_bounds((pos[0], pos[1] - 1), other):
-      return False
+      return True
 
     if check_owns_with_bounds((pos[0], pos[1] - 1), other) and check_owns_with_bounds((pos[0], pos[1] + 1), other) and \
         not check_owns_with_bounds((pos[0] + 1, pos[1]), other) and not check_owns_with_bounds((pos[0] - 1, pos[1]), other):
-      return False
+      return True
 
-    return True
+    return False
 
   # Buy the start positions
   buy_position(rob_a_pos, a, b)
@@ -153,36 +154,58 @@ def trade_regions(grid, for_sale, rob_a_pos, rob_b_pos):
       current_us = a
       current_other = b
     else:
-      draw_grid(state.for_sale)
-      draw_grid(a.owned)
-      draw_grid(b.owned)
-      draw_grid(a.frontier_grid)
-      draw_grid(b.frontier_grid)
+      # draw_grid(state.for_sale)
+      # draw_grid(a.owned)
+      # draw_grid(b.owned)
+      # draw_grid(a.frontier_grid)
+      # draw_grid(b.frontier_grid)
       raise Exception("Nothing else to explore, but we didn't finish selling")
 
     if not a.has_free and not b.has_free:
-      draw_grid(state.for_sale)
-      draw_grid(a.owned)
-      draw_grid(b.owned)
-      draw_grid(a.frontier_grid)
-      draw_grid(b.frontier_grid)
+      # draw_grid(state.for_sale)
+
+      unowned = np.logical_and(for_sale, np.logical_not(np.logical_or(a.owned, b.owned)))
+
+      if np.count_nonzero(np.logical_and(unowned, a.frontier_grid)) > 0:
+        print("in a's frontier")
+      if np.count_nonzero(np.logical_and(unowned, b.frontier_grid)) > 0:
+        print("in b's frontier")
+
+      debug_plot = np.zeros_like(a.owned, dtype=np.float32)
+      debug_plot += 1 * a.owned.astype(np.float32)
+      debug_plot += 2 * b.owned.astype(np.float32)
+      debug_plot += 4 * unowned.astype(np.float32)
+      # draw_grid(debug_plot)
+
+      debug_plot_2 = np.zeros_like(a.owned, dtype=np.float32)
+      debug_plot_2 += 1 * a.frontier_grid.astype(np.float32)
+      debug_plot_2 += 2 * b.frontier_grid.astype(np.float32)
+      debug_plot_2 += 4 * unowned.astype(np.float32)
+      # draw_grid(debug_plot_2)
+
       raise Exception("Just squabbling between themselves and not buying anything new")
 
     def frontier_loop():
       # Breadth first = forwards
-      for index in range(0, len(current_us.frontier)):
+
+      index = 0
+
+      while index < len(current_us.frontier):
         current_pos = current_us.frontier[index]
 
         # Check that it's not owned by the other side
         if current_us.has_free and current_other.owned[current_pos]:
+          index += 1
           continue
 
         # Check if no longer reachable
         if not can_buy(current_pos, current_us):
+          current_us.frontier_grid[current_pos] = 0
           del current_us.frontier[index]
           continue
 
-        if not wont_cutoff_other(current_pos, current_us, current_other):
+        if will_cutoff_other(current_pos, current_us, current_other):
+          index += 1
           continue
 
         # Buy this position
@@ -209,6 +232,9 @@ def random_owned_pos(owned):
   for ((x, y), val) in np.ndenumerate(owned):
     if val == 1:
       all_pos.append((x, y))
+
+  if len(all_pos) == 0:
+    return None
 
   return all_pos[np.random.randint(0, len(all_pos))]
 

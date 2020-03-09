@@ -1,4 +1,5 @@
 <launch>
+    <arg name="map" default="../ros/world_map"/>
 
-	<node pkg="project" type="decentral.py" name="decentral" args="" output="screen"></node>
+	<node pkg="project" type="decentral.py" name="decentral" args="--map=$(arg map)" output="screen"></node>
 </launch>

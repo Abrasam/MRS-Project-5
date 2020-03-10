@@ -1,0 +1,5 @@
+<launch>
+	<arg name="mode" />
+
+	<node pkg="project" type="localization_small.py" name="localization_small" output="screen"></node>
+</launch>

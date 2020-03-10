@@ -58,7 +58,7 @@ def rule_based(front, front_left, front_right, left, right):
     w = -0.2
   elif right < 0.15:
     w = 0.2
-  return u, w
+  return u, 2*w
 
 
 class SimpleLaser(object):

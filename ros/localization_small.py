@@ -36,7 +36,7 @@ Y = 1
 YAW = 2
 
 ROBOT_RADIUS = 0.105 / 2.
-WALL_OFFSET = 4.
+WALL_OFFSET = 2.
 CYLINDER_POSITION = np.array([.3, .2], dtype=np.float32)
 CYLINDER_RADIUS = .3 + ROBOT_RADIUS
 
@@ -57,47 +57,15 @@ class Particle(object):
     self._pose = np.zeros(3, dtype=np.float32)
     self._weight = 1.
     while True:
-      self._pose[X] = np.random.random()*8-4
-      self._pose[Y] = np.random.random()*8-4
+      self._pose[X] = np.random.random()*4-2
+      self._pose[Y] = np.random.random()*4-2
       self._pose[YAW] = np.random.random()*2*np.pi
       if self.is_valid():
         break
 
-  #def is_valid(self):
-  #  return -2 < self._pose[X] < 2 and -2 < self._pose[Y] < 2 and (self._pose[X]-0.3)**2 + (self._pose[Y]-0.2)**2 > 0.3**2
-
   def is_valid(self):
-    # MISSING: Implement a function that returns True if the current particle
-    # position is valid. You might need to use this function in __init__()
-    # and compute_weight().
+    return -2 < self._pose[X] < 2 and -2 < self._pose[Y] < 2 and (self._pose[X]-0.3)**2 + (self._pose[Y]-0.2)**2 > 0.3**2
 
-    if np.abs(self._pose[X]) > WALL_OFFSET - ROBOT_RADIUS:
-      return False
-    elif np.abs(self._pose[Y]) > WALL_OFFSET - ROBOT_RADIUS:
-      return False
-
-    pos = np.array([self._pose[X], self._pose[Y]], dtype=np.float32)
-
-    def inside_cylinder(cx, cy, cr):
-      cyl_offset = np.subtract(pos, np.array([cx, cy], dtype=np.float32))
-      cyl_dist = np.linalg.norm(cyl_offset)
-
-      return cyl_dist < cr
-
-    def inside_aa_box(x1, y1, x2, y2):
-      return x1 < self._pose[X] < x2 and y1 < self._pose[Y] < y2
-
-    if inside_cylinder(0.3, 0.2, 0.3) or\
-       inside_cylinder(2.5, 0.5, 0.7) or\
-       inside_cylinder(1.5, 2.5, 0.5) or\
-       inside_cylinder(-2.0, 3.0, 0.3):
-      return False
-
-    if inside_aa_box(-2.15, -2.15, 2.15, -2.0) or\
-       inside_aa_box(-2.15, -3.15, -2.0, 1.15):
-      return False
-
-    return True
 
   def move(self, delta_pose):
     self._pose[YAW] += delta_pose[YAW] * np.random.normal(loc=1, scale=0.2)
@@ -156,7 +124,7 @@ class Particle(object):
     prob *= norm.pdf(cap(front_right), dist(-np.pi/4), sigma)
     prob *= norm.pdf(cap(left), dist(np.pi/2), sigma)
     prob *= norm.pdf(cap(right), dist(-np.pi/2), sigma)
-    #prob /=1 # normalise to be within range 0-1
+    prob /=1 # normalise to be within range 0-1
     self._weight = prob if self.is_valid() else 0
 
   def ray_trace(self, angle):
@@ -173,35 +141,6 @@ class Particle(object):
       if t1 >= 0. and t2 >= 0. and t2 <= 1.:
         return t1
       return float('inf')
-
-    def intersection_aa_box(x1, y1, x2, y2):
-      px = self._pose[X]
-      py = self._pose[Y]
-      dist = float('inf')
-      x_vel = np.cos(angle + self._pose[YAW])
-      y_vel = np.sin(angle + self._pose[YAW])
-
-      if abs(x_vel) > 0.0001:
-        if px < x1 and x_vel > 0:
-          y_move = (y_vel * (x1 - px) / x_vel)
-          if y1 <= py + y_move <= y2:
-            dist = np.sqrt((px - x1) ** 2 + y_move ** 2)
-        elif px > x2 and x_vel < 0:
-          y_move = (y_vel * (x2 - px) / x_vel)
-          if y1 <= py + y_move <= y2:
-            dist = np.sqrt((px - x2) ** 2 + y_move ** 2)
-
-      if abs(y_vel) > 0.0001:
-        if py < y1 and y_vel > 0:
-          x_move = (x_vel * (y1 - py) / y_vel)
-          if x1 <= px + x_move <= x2:
-            dist = min(dist, np.sqrt(x_move ** 2 + (py - y1) ** 2))
-        elif py > y2 and y_vel < 0:
-          x_move = (x_vel * (y2 - py) / y_vel)
-          if x1 <= px + x_move <= x2:
-            dist = min(dist, np.sqrt(x_move ** 2 + (py - y2) ** 2))
-
-      return dist
 
     def intersection_cylinder(x, y, r):
       center = np.array([x, y], dtype=np.float32)
@@ -222,19 +161,11 @@ class Particle(object):
       if d >= 0.:
         return d
       return float('inf')
-
-    d = min(
-      intersection_segment(-WALL_OFFSET, -WALL_OFFSET, -WALL_OFFSET, WALL_OFFSET),
-      intersection_segment(WALL_OFFSET, WALL_OFFSET, -WALL_OFFSET, WALL_OFFSET),
-      intersection_segment(-WALL_OFFSET, WALL_OFFSET, -WALL_OFFSET, -WALL_OFFSET),
-      intersection_segment(-WALL_OFFSET, WALL_OFFSET, WALL_OFFSET, WALL_OFFSET),
-      intersection_cylinder(0.3, 0.2, 0.3),
-      intersection_cylinder(2.5, 0.5, 0.7),
-      intersection_cylinder(1.5, 2.5, 0.5),
-      intersection_cylinder(-2.0, 3.0, 0.3),
-      intersection_aa_box(-2.15, -2.15, 2.15, -2.0),
-      intersection_aa_box(-2.15, -3.15, -2.0, 1.15)
-    )
+    d = min(intersection_segment(-WALL_OFFSET, -WALL_OFFSET, -WALL_OFFSET, WALL_OFFSET),
+            intersection_segment(WALL_OFFSET, WALL_OFFSET, -WALL_OFFSET, WALL_OFFSET),
+            intersection_segment(-WALL_OFFSET, WALL_OFFSET, -WALL_OFFSET, -WALL_OFFSET),
+            intersection_segment(-WALL_OFFSET, WALL_OFFSET, WALL_OFFSET, WALL_OFFSET),
+            intersection_cylinder(CYLINDER_POSITION[X], CYLINDER_POSITION[Y], CYLINDER_RADIUS))
     return d
 
   @property
@@ -369,35 +300,6 @@ class GroundtruthPose(object):
         return t1
       return float('inf')
 
-    def intersection_aa_box(x1, y1, x2, y2):
-      px = self._pose[X]
-      py = self._pose[Y]
-      dist = float('inf')
-      x_vel = np.cos(angle + self._pose[YAW])
-      y_vel = np.sin(angle + self._pose[YAW])
-
-      if abs(x_vel) > 0.0001:
-        if px < x1 and x_vel > 0:
-          y_move = (y_vel * (x1 - px) / x_vel)
-          if y1 <= py + y_move <= y2:
-            dist = np.sqrt((px - x1) ** 2 + y_move ** 2)
-        elif px > x2 and x_vel < 0:
-          y_move = (y_vel * (x2 - px) / x_vel)
-          if y1 <= py + y_move <= y2:
-            dist = np.sqrt((px - x2) ** 2 + y_move ** 2)
-
-      if abs(y_vel) > 0.0001:
-        if py < y1 and y_vel > 0:
-          x_move = (x_vel * (y1 - py) / y_vel)
-          if x1 <= px + x_move <= x2:
-            dist = min(dist, np.sqrt(x_move ** 2 + (py - y1) ** 2))
-        elif py > y2 and y_vel < 0:
-          x_move = (x_vel * (y2 - py) / y_vel)
-          if x1 <= px + x_move <= x2:
-            dist = min(dist, np.sqrt(x_move ** 2 + (py - y2) ** 2))
-
-      return dist
-
     def intersection_cylinder(x, y, r):
       center = np.array([x, y], dtype=np.float32)
       v = np.array([np.cos(angle + self._pose[YAW] + np.pi), np.sin(angle + self._pose[YAW] + np.pi)],
@@ -417,19 +319,11 @@ class GroundtruthPose(object):
       if d >= 0.:
         return d
       return float('inf')
-
-    d = min(
-      intersection_segment(-WALL_OFFSET, -WALL_OFFSET, -WALL_OFFSET, WALL_OFFSET),
-      intersection_segment(WALL_OFFSET, WALL_OFFSET, -WALL_OFFSET, WALL_OFFSET),
-      intersection_segment(-WALL_OFFSET, WALL_OFFSET, -WALL_OFFSET, -WALL_OFFSET),
-      intersection_segment(-WALL_OFFSET, WALL_OFFSET, WALL_OFFSET, WALL_OFFSET),
-      intersection_cylinder(0.3, 0.2, 0.3),
-      intersection_cylinder(2.5, 0.5, 0.7),
-      intersection_cylinder(1.5, 2.5, 0.5),
-      intersection_cylinder(-2.0, 3.0, 0.3),
-      intersection_aa_box(-2.15, -2.15, 2.15, -2.0),
-      intersection_aa_box(-2.15, -3.15, -2.0, 1.15)
-    )
+    d = min(intersection_segment(-WALL_OFFSET, -WALL_OFFSET, -WALL_OFFSET, WALL_OFFSET),
+            intersection_segment(WALL_OFFSET, WALL_OFFSET, -WALL_OFFSET, WALL_OFFSET),
+            intersection_segment(-WALL_OFFSET, WALL_OFFSET, -WALL_OFFSET, -WALL_OFFSET),
+            intersection_segment(-WALL_OFFSET, WALL_OFFSET, WALL_OFFSET, WALL_OFFSET),
+            intersection_cylinder(CYLINDER_POSITION[X], CYLINDER_POSITION[Y], CYLINDER_RADIUS))
     return d
 
 def run(args):
@@ -471,19 +365,17 @@ def run(args):
           if dir_vec.dot(np.array([-between_vec[Y],between_vec[X]])) > 0:
             ang = -ang
           raytrace = groundtruth[j].ray_trace(ang)
-          if raytrace >= dist:
-            messages.append((dist*np.random.normal(loc=1, scale=0.1), ang*np.random.normal(loc=1, scale=0.1), list(map(lambda p: Particle().copy(p), particles[j])) if j == 0 else list(map(lambda p: p.set(groundtruth[j].pose+np.random.randn()), [Particle() for _ in range(num_particles)])))) # assume robots 1/2 are well localised
-
+          if raytrace >= dist and dist < 3.5:
+            messages.append((dist*np.random.normal(loc=1, scale=0.1), ang*np.random.normal(loc=1, scale=0.1), list(map(lambda p: Particle().copy(p), particles[j])) if j == 0 else list(map(lambda p: p.set(groundtruth[j].pose+normalize(np.random.randn())), [Particle() for _ in range(num_particles)])))) # assume robots 1/2 are well localised
       # Update particle positions and weights.
       total_weight = 0.
-      #t = time.time()
       delta_pose = motion[i].delta_pose
       for _, p in enumerate(particles[i]):
         p.move(delta_pose)
         p.compute_weight(*laser[i].measurements)
         p.refine_weight(messages)
         total_weight += p.weight
-      #print(time.time()-t)
+
       # Low variance re-sampling of particles.
       new_particles = []
       random_weight = np.random.rand() * total_weight / num_particles

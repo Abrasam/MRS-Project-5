@@ -7,7 +7,6 @@ from __future__ import print_function
 import argparse
 import numpy as np
 import rospy
-import os
 
 import scipy.special
 
@@ -134,12 +133,11 @@ class GroundtruthPose(object):
 
 
 def run(args):
-  rospy.init_node('obstacle_avoidance')
+  rospy.init_node('obstacle_avoidance_temp')
   avoidance_method = globals()[args.mode]
 
-  # Update control every 100 ms. Posssibly Hz, not ms
+  # Update control every 100 ms.
   rate_limiter = rospy.Rate(100)
-  #tb3_n 0-2
   publisher = rospy.Publisher('/' + args.robot + '/cmd_vel', Twist, queue_size=5)
   laser = SimpleLaser(name=args.robot)
   # Keep track of groundtruth position for plotting purposes.

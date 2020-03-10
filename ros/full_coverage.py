@@ -13,6 +13,7 @@ import scipy.special
 from divide_areas import divide
 import time
 
+from copy import deepcopy
 
 # Robot motion commands:
 # http://docs.ros.org/api/geometry_msgs/html/msg/Twist.html
@@ -26,10 +27,12 @@ from tf.transformations import euler_from_quaternion
 
 import matplotlib.pylab as plt
 
-EPSILON = .1
-NUMBER_ROBOTS = 1
-ROBOT_SPEED = 0.1
 
+NUMBER_ROBOTS = 3
+ROBOT_SPEED = 0.3
+
+ROBOT_RADIUS = 0.105 / 2.
+EPSILON = ROBOT_RADIUS
 
 def braitenberg(front, front_left, front_right, left, right):
     u = 0.  # [m/s]
@@ -77,25 +80,27 @@ def feedback_linearized(pose, velocity, epsilon):
   # vector given as argument. Epsilon corresponds to the distance of
   # linearized point in front of the robot.
 
-
+  #print("velocity", velocity)
   u = velocity[0]*np.cos(pose[2]) + velocity[1]*np.sin(pose[2])
   w = (velocity[1]*np.cos(pose[2]) - velocity[0]*np.sin(pose[2])) / epsilon
 
+  #u = velocity[0]*np.cos(pose[2]) + velocity[1]*np.sin(pose[2])
+  #w = velocity[2]
   return u, w
 
 def get_velocity(position, target, robot_speed):
 
   v = np.zeros_like(position)
-  position[0] += EPSILON*np.cos(position[2])
-  position[1] += EPSILON*np.sin(position[2])
+  #position[0] += EPSILON*np.cos(position[2])
+  #position[1] += EPSILON*np.sin(position[2])
   #
-  target_vel = np.array([robot_speed*np.cos(target[2]), robot_speed*np.sin(target[2]), 0])
+  #target_vel = np.array([robot_speed*np.cos(target[2]), robot_speed*np.sin(target[2]), 0])
 
   # Head towards the next point
   v = (target - position)
-  v /= np.linalg.norm(v)
-  v /= 2
-  v += target_vel
+  v /= np.linalg.norm(v[:2])
+  v /= 3
+  #v += target_vel
   return v
 
 class SimpleLaser(object):
@@ -179,22 +184,24 @@ def run(args):
     publishers = []
     lasers = []
     ground_truths = []
-    pose_histories = []
+    pose_history = []
     for robot in ["tb3_0", "tb3_1", "tb3_2"]:
         publishers.append(rospy.Publisher(
             '/' + robot + '/cmd_vel', Twist, queue_size=5))
         lasers.append(SimpleLaser(name=robot))
         # Keep track of groundtruth position for plotting purposes.
         ground_truths.append(GroundtruthPose(name=robot))
-        pose_histories.append([])
-    with open('/tmp/gazebo_exercise.txt', 'w'):
-        pass
+        pose_history.append([])
 
     # plotting values
     times = []
-    trajectory = [[], []]
-    poses = [[], []]
+    for i in range(NUMBER_ROBOTS):
+      with open('/tmp/gazebo_robot_tb3_' + str(i) + '.txt', 'w'):
+        pass
     counter = 0
+
+    targets = [0] * NUMBER_ROBOTS
+    arrived = [False] * NUMBER_ROBOTS
 
     start_timer = time.time()
     paths_found = False
@@ -215,12 +222,12 @@ def run(args):
                 vel_msg.angular.z = w
                 publishers[index].publish(vel_msg)
 
-                # Log groundtruth positions in /tmp/gazebo_exercise.txt
+                """# Log groundtruth positions in /tmp/gazebo_exercise.txt
                 pose_histories[index].append(ground_truths[index].pose)
                 if len(pose_histories[index]) % 10:
                     with open('/tmp/gazebo_robot_' + robot + '.txt', 'a') as fp:
                         #fp.write('\n'.join(','.join(str(v) for v in p) for p in pose_history) + '\n')
-                        pose_histories[index] = []
+                        pose_histories[index] = []"""
             rate_limiter.sleep()
             continue
 
@@ -234,11 +241,11 @@ def run(args):
                 robot = "tb3_%s" % index
                 publishers[index].publish(vel_msg)
                 # Log groundtruth positions in /tmp/gazebo_exercise.txt
-                pose_histories[index].append(ground_truths[index].pose)
+                """pose_histories[index].append(ground_truths[index].pose)
                 if len(pose_histories[index]) % 10:
                     with open('/tmp/gazebo_robot_' + robot + '.txt', 'a') as fp:
                         #fp.write('\n'.join(','.join(str(v) for v in p) for p in pose_history) + '\n')
-                        pose_histories[index] = []
+                        pose_histories[index] = []"""
 
             # Locations - currenlty use ground truth
             # TODO - must switch to localization result
@@ -246,8 +253,8 @@ def run(args):
             # Transposing location
             robot_locations = [(i.pose[0] , i.pose[1]) for i in ground_truths]
             print(robot_locations)
-            movement_functions = divide(args, robot_locations[:NUMBER_ROBOTS], ROBOT_SPEED)
-            if movement_functions == False:
+            robot_paths = divide(args, robot_locations[:NUMBER_ROBOTS], ROBOT_SPEED)
+            if robot_paths == False:
                 time.sleep(2)
                 start_time = time.time()
                 print(robot_locations)
@@ -258,8 +265,8 @@ def run(args):
             for i in ground_truths:
                 print(i.pose)
             print()
-            for i in movement_functions:
-                print(i(0))
+            for i in robot_paths:
+                print(i[0])
 
         # Follow path
         if not run_time_started:
@@ -267,35 +274,63 @@ def run(args):
             run_time = time.time()
         for index in range(NUMBER_ROBOTS):
             robot = "tb3_%s" % index
-            target = movement_functions[index](time.time() - run_time)
-            v = get_velocity(ground_truths[index].pose.copy(), target, ROBOT_SPEED)
 
-            u, w = feedback_linearized(ground_truths[index].pose.copy(), v, epsilon=EPSILON)
-            print("%.2f, %.2f, %.2f -- %.2f, %.2f, %.2f     u:%.2f, w:%.2f" % (ground_truths[index].pose[0], ground_truths[index].pose[1], ground_truths[index].pose[2], target[0], target[1], target[2], u, w))
-            times.append(time.time())
-            trajectory[0].append(target[0])
-            trajectory[1].append(target[1])
-            poses[0].append(ground_truths[index].pose[0])
-            poses[1].append(ground_truths[index].pose[1])
-            counter += 1
+            current_target = robot_paths[index][targets[index]]
+            current_position = ground_truths[index].pose.copy()
+            # Check if at target.
+            distance = ((current_target[0] - current_position[0]) ** 2
+                     +  (current_target[1] - current_position[1]) ** 2) ** 0.5
+
+            if distance < ROBOT_RADIUS or arrived[index]:
+                # Keep moving for a bit
+                arrived[index] = True
+                if np.absolute((current_target[2])-current_position[2]) < (0.03): # Within 3 degrees
+                    #print("Next")
+                    arrived[index] = False
+                    targets[index] += 1
+                    targets[index] %= len(robot_paths[index])
+                    current_target = robot_paths[index][targets[index]]
+                    #print(current_target)
+                    v = get_velocity(current_position.copy(), deepcopy(current_target), ROBOT_SPEED)
+                    #v = np.array([1, 0])
+                    u, w = feedback_linearized(current_position.copy(), v, epsilon=EPSILON)
+                    #u=0.5
+                    #w=0
+                else:
+                    #print("Rotating")
+                    # Rotate to correct orientation
+                    u = 0
+                    difference = ((current_target[2]%(2*np.pi)) - (current_position[2]%(2*np.pi)))%(2*np.pi)
+
+                    if difference < np.pi:
+                        # Difference heading to 0
+                        w = max(0.75, difference)
+                    else:
+                        remaining = 2*np.pi - difference
+                        w = -1*max(0.75, remaining)
+                    #w = 0.2 if ((current_target[2]) - current_position[2]) > 0 and (current_target[2] - current_position[2]) < np.pi else -0.2
+            else:
+                #print("Moving")
+                v = get_velocity(deepcopy(current_position), deepcopy(current_target), ROBOT_SPEED)
+                #v = np.array([1, 0])
+                u, w = feedback_linearized(deepcopy(current_position), v, epsilon=EPSILON)
+                #u = 0.5
+                #w = 0
+
+            #print("%.2f, %.2f, %.2f -- %.2f, %.2f, %.2f     u:%.2f, w:%.2f" % (current_position[0], current_position[1], current_position[2], current_target[0], current_target[1], current_target[2], u, w))
+
             vel_msg = Twist()
             vel_msg.linear.x = u
             vel_msg.angular.z = w
             publishers[index].publish(vel_msg)
-        if counter % 100000 == 0:
-            fig = plt.figure()
-            plt.axis('equal')
-            plt.xlabel('x')
-            plt.ylabel('y')
-            plt.xlim([-4, 4])
-            plt.ylim([-4, 4])
 
-            plt.scatter(trajectory[0], trajectory[1], c = 'b', linewidths=0, edgecolors='face')
-            plt.scatter(poses[0], poses[1], c = 'r', linewidths=0, edgecolors='face')
-
-            run_time_pause = time.time() - run_time
-            plt.show()
-            run_time = time.time()-run_time_pause
+            pose_history[index].append(ground_truths[index].pose)
+            if len(pose_history[index]) % 10:
+              with open('/tmp/gazebo_robot_tb3_' + str(index) + '.txt', 'a') as fp:
+                fp.write('\n'.join(','.join(str(v) for v in p) for p in pose_history[index]) + '\n')
+                pose_history[index] = []
+        
+        rate_limiter.sleep()
 
 
 if __name__ == '__main__':

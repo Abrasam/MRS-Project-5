@@ -20,6 +20,8 @@ from scipy import ndimage
 import copy
 #import rospy
 import time
+from copy import deepcopy
+
 
 
 # Constants used for indexing.
@@ -188,7 +190,7 @@ def draw_world(occupancy_grid, robot_locations, assignments, lines_plot={}, pose
             plt.gca().add_patch(rectangle)
             #plt.show()
 
-    for line_start in lines_plot:
+    """for line_start in lines_plot:
         for line_direction in lines_plot[line_start]:
             if line_direction == 0:
                 line_end = (line_start[0] - line_multiplier, line_start[1])
@@ -206,7 +208,7 @@ def draw_world(occupancy_grid, robot_locations, assignments, lines_plot={}, pose
             x_values = [x1, x2]
             y_values = [y1, y2]
 
-            plt.plot(x_values, y_values, c='black')
+            plt.plot(x_values, y_values, c='black')"""
 
     for pose in poses:
         x, y, angle = pose
@@ -279,7 +281,7 @@ def divide_grid(occupancy_grid, robots):
         (size * len(robots))
     upper_thres = (size + not_equal_split) / (size * len(robots))
 
-    limit = 10000
+    limit = 30000
     for iter in range(limit):
         if iter == limit-1:
             return False
@@ -590,7 +592,7 @@ def calculate_mst(occupancy_grid, assignments, robot_location):
 
     return edges_used
 
-
+"""
 def generate_route_poses(edges, robot_position, occupancy_grid, robot_positions, assignments, lines_plot=[]):
     poses = []
     start_edges = edges[robot_position]
@@ -739,7 +741,173 @@ def generate_route_poses(edges, robot_position, occupancy_grid, robot_positions,
             sys.exit()
         #draw_world(occupancy_grid, robot_locations, assignments, lines_plot = lines_plot, poses=poses)
 
-    return poses
+    return poses"""
+
+def generate_route_poses(edges, robot_position, occupancy_grid, robot_positions, assignments, lines_plot=[]):
+    poses = []
+    start_edges = edges[robot_position]
+    i, j = robot_position
+    if UP in start_edges:
+        # top left facing up
+        pose = (i+0.25, j + 0.25, np.pi / 2)
+        next_cell = (i - 1, j)
+        entry_point = DOWN
+    elif RIGHT in start_edges:
+        # top right facing right
+        pose = (i + 0.25, j + 0.75, 0)
+        next_cell = (i, j + 1)
+        entry_point = LEFT
+    elif DOWN in start_edges:
+        # bottom right facing down
+        pose = (i + 0.75, j + 0.75, -np.pi / 2)
+        next_cell = (i + 1, j)
+        entry_point = UP
+    elif LEFT in start_edges:
+        # bottom left facing left
+        pose = (i + 0.75, j+0.25, np.pi)
+        next_cell = (i, j - 1)
+        entry_point = RIGHT
+    else:
+        print("There has been a catastrophe.")
+    poses.append(pose)
+    start = True
+    while poses[-1] != poses[0] or start:
+        start = False
+        cell_edges = edges[next_cell]
+        i, j = next_cell
+        # always move clockwise, so e.g. from DOWN means from down left.
+        if entry_point == DOWN:
+            if LEFT in cell_edges:
+                poses.append((i + 0.75, j+0.25, np.pi))
+                next_cell = (i, j - 1)
+                entry_point = RIGHT
+            else:
+                # forward then another decision
+                poses.append((i+0.75, j+0.25, np.pi/2))
+                if UP in cell_edges:
+                    poses.append((i + 0.25, j + 0.25, np.pi / 2))
+                    next_cell = (i - 1, j)
+                    entry_point = DOWN
+                else:
+                    # right then another decision
+                    poses.append((i + 0.25, j + 0.25, 0))
+                    if RIGHT in cell_edges:
+                        poses.append((i + 0.25, j + 0.75, 0))
+                        next_cell = (i, j + 1)
+                        entry_point = LEFT
+                    else:
+                        # right, and check that all edges are here
+                        poses.append((i + 0.25, j + 0.75, -np.pi / 2))
+                        if DOWN in cell_edges:
+                            poses.append((i + 0.75, j + 0.75, -np.pi / 2))
+                            next_cell = (i + 1, j)
+                            entry_point = UP
+                        else:
+                            print("The robot is in a cell with no edges.")
+                            sys.exit()
+        elif entry_point == LEFT:
+            if UP in cell_edges:
+                poses.append((i+0.25, j + 0.25, np.pi / 2))
+                next_cell = (i - 1, j)
+                entry_point = DOWN
+            else:
+                poses.append((i + 0.25, j + 0.25, 0))
+                if RIGHT in cell_edges:
+                    poses.append((i + 0.25, j + 0.75, 0))
+                    next_cell = (i, j + 1)
+                    entry_point = LEFT
+                else:
+                    poses.append((i + 0.25, j + 0.75, -np.pi / 2))
+                    if DOWN in cell_edges:
+                        poses.append((i + 0.75, j + 0.75, -np.pi / 2))
+                        next_cell = (i + 1, j)
+                        entry_point = UP
+                    else:
+                        poses.append((i + 0.75, j + 0.75, np.pi))
+                        if LEFT in cell_edges:
+                            poses.append((i + 0.75, j+0.25, np.pi))
+                            next_cell = (i, j - 1)
+                            entry_point = RIGHT
+                        else:
+                            print("The robot is in a cell with no edges.")
+                            sys.exit()
+        elif entry_point == UP:
+
+            if RIGHT in cell_edges:
+                poses.append((i + 0.25, j + 0.75, 0))
+                next_cell = (i, j + 1)
+                entry_point = LEFT
+            else:
+                poses.append((i + 0.25, j + 0.75, -np.pi / 2))
+                if DOWN in cell_edges:
+                    poses.append((i + 0.75, j + 0.75, -np.pi / 2))
+                    next_cell = (i + 1, j)
+                    entry_point = UP
+                else:
+                    poses.append((i + 0.75, j + 0.75, np.pi))
+                    if LEFT in cell_edges:
+                        poses.append((i + 0.75, j+0.25, np.pi))
+                        next_cell = (i, j - 1)
+                        entry_point = RIGHT
+                    else:
+                        poses.append((i + 0.75, j + 0.25, np.pi / 2))
+                        if UP in cell_edges:
+                            poses.append((i+0.25, j + 0.25, np.pi / 2))
+                            next_cell = (i - 1, j)
+                            entry_point = DOWN
+                        else:
+                            print("The robot is in a cell with no edges.")
+                            sys.exit()
+        elif entry_point == RIGHT:
+
+            if DOWN in cell_edges:
+                poses.append((i + 0.75, j + 0.75, -np.pi / 2))
+                next_cell = (i + 1, j)
+                entry_point = UP
+            else:
+                poses.append((i + 0.75, j + 0.75, np.pi))
+                if LEFT in cell_edges:
+                    poses.append((i + 0.75, j+0.25, np.pi))
+                    next_cell = (i, j - 1)
+                    entry_point = RIGHT
+                else:
+                    poses.append((i + 0.75, j + 0.25, np.pi / 2))
+                    if UP in cell_edges:
+                        poses.append((i+0.25, j + 0.25, np.pi / 2))
+                        next_cell = (i - 1, j)
+                        entry_point = DOWN
+                    else:
+                        poses.append((i + 0.25, j + 0.25, 0))
+                        if RIGHT in cell_edges:
+                            poses.append((i + 0.25, j + 0.75, 0))
+                            next_cell = (i, j + 1)
+                            entry_point = LEFT
+                        else:
+
+                            print("The robot is in a cell with no edges.")
+                            sys.exit()
+        else:
+            print("Should not have reached here")
+            sys.exit()
+        # Remove any poses that have the same angle as the previous pose
+        #draw_world(occupancy_grid, robot_positions, assignments, lines_plot=lines_plot, poses=poses)
+    new_poses = []
+    for i in range(len(poses)):
+        if len(new_poses) == 0:
+            new_poses.append(poses[i])
+            continue
+        if poses[i][2] == new_poses[-1][2]:
+            continue
+        else:
+            new_poses.append(poses[i])
+            #draw_world(occupancy_grid, robot_positions, assignments, lines_plot=lines_plot, poses=new_poses)
+    if new_poses[-1] != new_poses[0]:
+        new_poses.append(new_poses[0])
+
+    #draw_world(occupancy_grid, robot_positions, assignments, lines_plot = lines_plot, poses=new_poses)
+
+    return new_poses
+
 
 def create_occupancy_grid(args):
     print(os.getcwd())
@@ -751,6 +919,21 @@ def create_occupancy_grid(args):
     occupancy_grid[:] = UNKNOWN
     occupancy_grid[img < .1] = OCCUPIED
     occupancy_grid[img > .9] = FREE
+
+    # Expand the walls so that the robots have more clearance
+    for _ in range(2):
+        expanded_occupancy_grid = occupancy_grid.copy()
+        for i in range(occupancy_grid.shape[0]):
+            for j in range(occupancy_grid.shape[1]):
+                free = True
+                for a in range(i-1, i+2):
+                    for b in range(j-1, j+2):
+                        if a < 0 or b < 0 or a > occupancy_grid.shape[0]-1 or b > occupancy_grid.shape[1]-1:
+                            continue
+                        if occupancy_grid[a, b] != FREE:
+                            free = False
+                expanded_occupancy_grid[i, j] = FREE if free else OCCUPIED
+        occupancy_grid = expanded_occupancy_grid.copy()
 
     # Transpose (undo ROS processing).
     occupancy_grid = occupancy_grid.T
@@ -764,8 +947,8 @@ def create_occupancy_grid(args):
         occupancy_grid, data['origin'], data['resolution'])
 
     # Shrink occupancy grid - make the minimum cell size 2*robot_width so that the robot can go forwards and backwards along it.
-
-    square_edge_size = np.array([ROBOT_RADIUS * 4, ROBOT_RADIUS * 4])
+    # Add
+    square_edge_size = np.array([ROBOT_RADIUS * 4.5, ROBOT_RADIUS * 4.5])
     square_edge_size /= occupancy_grid.resolution
     adjusted_edge_size = (occupancy_grid.values.shape //
                           square_edge_size).astype(np.int)
@@ -777,6 +960,7 @@ def create_occupancy_grid(args):
         istart = int(np.floor(i * cells_to_merge))
         iend = int(np.ceil((i + 1) * cells_to_merge))
         for j in range(adjusted_edge_size[1]):
+            # Extra clearance for safety
             jstart = int(np.floor(j * cells_to_merge))
             jend = int(np.ceil((j + 1) * cells_to_merge))
             if np.any(occupancy_grid.values[istart:iend, jstart:jend] == OCCUPIED):
@@ -913,9 +1097,15 @@ def divide(args, robot_locations, robot_speed):
             new_edges, robot_location, occupancy_grid, robot_locations, assignments, lines_plot=new_edges)
         scaled_poses = []
         for a, b, c in poses:
-            scaled_poses.append((a*scaling, b*scaling, c))
+            a, b = original_occupancy_grid.get_position(a*scaling, b*scaling)
+            # Flip C in diagonal and vertical to match with Gazebo.
+            c += np.pi/2
+            if c > np.pi:
+                c -= 2*np.pi
+            scaled_poses.append((a, b, c))
         robot_paths.append(scaled_poses)
-        pose_func = create_route(scaled_poses, robot_speed, original_occupancy_grid)
+
+        pose_func = create_route(deepcopy(scaled_poses), robot_speed, original_occupancy_grid)
         """for i in range(100000):
             pose_func(i)"""
         routes.append(pose_func)
@@ -935,8 +1125,8 @@ def divide(args, robot_locations, robot_speed):
         a, b = key
         adjusted_edges_used[(scaling*a+occupancy_grid.resolution, scaling*b+occupancy_grid.resolution)] = edges_used[key]
 
-    #draw_world(original_occupancy_grid, robot_locations, assignments, lines_plot=adjusted_edges_used, poses=[item for subpath in robot_paths for item in subpath], line_multiplier=scaling)
-    return routes
+    draw_world(original_occupancy_grid, robot_locations, assignments, lines_plot=adjusted_edges_used, line_multiplier=scaling)
+    return robot_paths
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Provides routes to each robot to give full coverage.')

@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
   #img = plt.imread("small_map.png")
   img = read_pgm("small_map.pgm")
-  plt.imshow(img, extent=[-4, 4, -4, 4])
+  plt.imshow(img, extent=[-2, 2, -2, 2])
 
 
   # Axes and stuff

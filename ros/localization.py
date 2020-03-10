@@ -36,7 +36,7 @@ Y = 1
 YAW = 2
 
 ROBOT_RADIUS = 0.105 / 2.
-WALL_OFFSET = 2.
+WALL_OFFSET = 4.
 CYLINDER_POSITION = np.array([.3, .2], dtype=np.float32)
 CYLINDER_RADIUS = .3 + ROBOT_RADIUS
 
@@ -57,15 +57,47 @@ class Particle(object):
     self._pose = np.zeros(3, dtype=np.float32)
     self._weight = 1.
     while True:
-      self._pose[X] = np.random.random()*4-2
-      self._pose[Y] = np.random.random()*4-2
+      self._pose[X] = np.random.random()*8-4
+      self._pose[Y] = np.random.random()*8-4
       self._pose[YAW] = np.random.random()*2*np.pi
       if self.is_valid():
         break
 
-  def is_valid(self):
-    return -2 < self._pose[X] < 2 and -2 < self._pose[Y] < 2 and (self._pose[X]-0.3)**2 + (self._pose[Y]-0.2)**2 > 0.3**2
+  #def is_valid(self):
+  #  return -2 < self._pose[X] < 2 and -2 < self._pose[Y] < 2 and (self._pose[X]-0.3)**2 + (self._pose[Y]-0.2)**2 > 0.3**2
 
+  def is_valid(self):
+    # MISSING: Implement a function that returns True if the current particle
+    # position is valid. You might need to use this function in __init__()
+    # and compute_weight().
+
+    if np.abs(self._pose[X]) > WALL_OFFSET - ROBOT_RADIUS:
+      return False
+    elif np.abs(self._pose[Y]) > WALL_OFFSET - ROBOT_RADIUS:
+      return False
+
+    pos = np.array([self._pose[X], self._pose[Y]], dtype=np.float32)
+
+    def inside_cylinder(cx, cy, cr):
+      cyl_offset = np.subtract(pos, np.array([cx, cy], dtype=np.float32))
+      cyl_dist = np.linalg.norm(cyl_offset)
+
+      return cyl_dist < cr
+
+    def inside_aa_box(x1, y1, x2, y2):
+      return x1 < self._pose[X] < x2 and y1 < self._pose[Y] < y2
+
+    if inside_cylinder(0.3, 0.2, 0.3) or\
+       inside_cylinder(2.5, 0.5, 0.7) or\
+       inside_cylinder(1.5, 2.5, 0.5) or\
+       inside_cylinder(-2.0, 3.0, 0.3):
+      return False
+
+    if inside_aa_box(-2.15, -2.15, 2.15, -2.0) or\
+       inside_aa_box(-2.15, -3.15, -2.0, 1.15):
+      return False
+
+    return True
 
   def move(self, delta_pose):
     self._pose[YAW] += delta_pose[YAW] * np.random.normal(loc=1, scale=0.2)
@@ -142,6 +174,35 @@ class Particle(object):
         return t1
       return float('inf')
 
+    def intersection_aa_box(x1, y1, x2, y2):
+      px = self._pose[X]
+      py = self._pose[Y]
+      dist = float('inf')
+      x_vel = np.cos(angle + self._pose[YAW])
+      y_vel = np.sin(angle + self._pose[YAW])
+
+      if abs(x_vel) > 0.0001:
+        if px < x1 and x_vel > 0:
+          y_move = (y_vel * (x1 - px) / x_vel)
+          if y1 <= py + y_move <= y2:
+            dist = np.sqrt((px - x1) ** 2 + y_move ** 2)
+        elif px > x2 and x_vel < 0:
+          y_move = (y_vel * (x2 - px) / x_vel)
+          if y1 <= py + y_move <= y2:
+            dist = np.sqrt((px - x2) ** 2 + y_move ** 2)
+
+      if abs(y_vel) > 0.0001:
+        if py < y1 and y_vel > 0:
+          x_move = (x_vel * (y1 - py) / y_vel)
+          if x1 <= px + x_move <= x2:
+            dist = min(dist, np.sqrt(x_move ** 2 + (py - y1) ** 2))
+        elif py > y2 and y_vel < 0:
+          x_move = (x_vel * (y2 - py) / y_vel)
+          if x1 <= px + x_move <= x2:
+            dist = min(dist, np.sqrt(x_move ** 2 + (py - y2) ** 2))
+
+      return dist
+
     def intersection_cylinder(x, y, r):
       center = np.array([x, y], dtype=np.float32)
       v = np.array([np.cos(angle + self._pose[YAW] + np.pi), np.sin(angle + self._pose[YAW] + np.pi)],
@@ -161,11 +222,19 @@ class Particle(object):
       if d >= 0.:
         return d
       return float('inf')
-    d = min(intersection_segment(-WALL_OFFSET, -WALL_OFFSET, -WALL_OFFSET, WALL_OFFSET),
-            intersection_segment(WALL_OFFSET, WALL_OFFSET, -WALL_OFFSET, WALL_OFFSET),
-            intersection_segment(-WALL_OFFSET, WALL_OFFSET, -WALL_OFFSET, -WALL_OFFSET),
-            intersection_segment(-WALL_OFFSET, WALL_OFFSET, WALL_OFFSET, WALL_OFFSET),
-            intersection_cylinder(CYLINDER_POSITION[X], CYLINDER_POSITION[Y], CYLINDER_RADIUS))
+
+    d = min(
+      intersection_segment(-WALL_OFFSET, -WALL_OFFSET, -WALL_OFFSET, WALL_OFFSET),
+      intersection_segment(WALL_OFFSET, WALL_OFFSET, -WALL_OFFSET, WALL_OFFSET),
+      intersection_segment(-WALL_OFFSET, WALL_OFFSET, -WALL_OFFSET, -WALL_OFFSET),
+      intersection_segment(-WALL_OFFSET, WALL_OFFSET, WALL_OFFSET, WALL_OFFSET),
+      intersection_cylinder(0.3, 0.2, 0.3),
+      intersection_cylinder(2.5, 0.5, 0.7),
+      intersection_cylinder(1.5, 2.5, 0.5),
+      intersection_cylinder(-2.0, 3.0, 0.3),
+      intersection_aa_box(-2.15, -2.15, 2.15, -2.0),
+      intersection_aa_box(-2.15, -3.15, -2.0, 1.15)
+    )
     return d
 
   @property
@@ -300,6 +369,35 @@ class GroundtruthPose(object):
         return t1
       return float('inf')
 
+    def intersection_aa_box(x1, y1, x2, y2):
+      px = self._pose[X]
+      py = self._pose[Y]
+      dist = float('inf')
+      x_vel = np.cos(angle + self._pose[YAW])
+      y_vel = np.sin(angle + self._pose[YAW])
+
+      if abs(x_vel) > 0.0001:
+        if px < x1 and x_vel > 0:
+          y_move = (y_vel * (x1 - px) / x_vel)
+          if y1 <= py + y_move <= y2:
+            dist = np.sqrt((px - x1) ** 2 + y_move ** 2)
+        elif px > x2 and x_vel < 0:
+          y_move = (y_vel * (x2 - px) / x_vel)
+          if y1 <= py + y_move <= y2:
+            dist = np.sqrt((px - x2) ** 2 + y_move ** 2)
+
+      if abs(y_vel) > 0.0001:
+        if py < y1 and y_vel > 0:
+          x_move = (x_vel * (y1 - py) / y_vel)
+          if x1 <= px + x_move <= x2:
+            dist = min(dist, np.sqrt(x_move ** 2 + (py - y1) ** 2))
+        elif py > y2 and y_vel < 0:
+          x_move = (x_vel * (y2 - py) / y_vel)
+          if x1 <= px + x_move <= x2:
+            dist = min(dist, np.sqrt(x_move ** 2 + (py - y2) ** 2))
+
+      return dist
+
     def intersection_cylinder(x, y, r):
       center = np.array([x, y], dtype=np.float32)
       v = np.array([np.cos(angle + self._pose[YAW] + np.pi), np.sin(angle + self._pose[YAW] + np.pi)],
@@ -319,11 +417,19 @@ class GroundtruthPose(object):
       if d >= 0.:
         return d
       return float('inf')
-    d = min(intersection_segment(-WALL_OFFSET, -WALL_OFFSET, -WALL_OFFSET, WALL_OFFSET),
-            intersection_segment(WALL_OFFSET, WALL_OFFSET, -WALL_OFFSET, WALL_OFFSET),
-            intersection_segment(-WALL_OFFSET, WALL_OFFSET, -WALL_OFFSET, -WALL_OFFSET),
-            intersection_segment(-WALL_OFFSET, WALL_OFFSET, WALL_OFFSET, WALL_OFFSET),
-            intersection_cylinder(CYLINDER_POSITION[X], CYLINDER_POSITION[Y], CYLINDER_RADIUS))
+
+    d = min(
+      intersection_segment(-WALL_OFFSET, -WALL_OFFSET, -WALL_OFFSET, WALL_OFFSET),
+      intersection_segment(WALL_OFFSET, WALL_OFFSET, -WALL_OFFSET, WALL_OFFSET),
+      intersection_segment(-WALL_OFFSET, WALL_OFFSET, -WALL_OFFSET, -WALL_OFFSET),
+      intersection_segment(-WALL_OFFSET, WALL_OFFSET, WALL_OFFSET, WALL_OFFSET),
+      intersection_cylinder(0.3, 0.2, 0.3),
+      intersection_cylinder(2.5, 0.5, 0.7),
+      intersection_cylinder(1.5, 2.5, 0.5),
+      intersection_cylinder(-2.0, 3.0, 0.3),
+      intersection_aa_box(-2.15, -2.15, 2.15, -2.0),
+      intersection_aa_box(-2.15, -3.15, -2.0, 1.15)
+    )
     return d
 
 def run(args):

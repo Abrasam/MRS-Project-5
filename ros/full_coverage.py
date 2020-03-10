@@ -21,7 +21,7 @@ import os
 from geometry_msgs.msg import Twist,Point32
 # Laser scan message:
 # http://docs.ros.org/api/sensor_msgs/html/msg/LaserScan.html
-from sensor_msgs.msg import LaserScan
+from sensor_msgs.msg import LaserScan, PointCloud
 # For groundtruth information.
 from gazebo_msgs.msg import ModelStates
 from tf.transformations import euler_from_quaternion
@@ -180,7 +180,8 @@ class LocalisationPose(object):
         rospy.Subscriber('/locpos'+name[-1], Point32, self.callback)
         self._pose = np.array([np.nan, np.nan, np.nan], dtype=np.float32)
         self._name = name
-        self.prediction_publisher = rospy.Publisher('/motion_model_pred' + name[-1], Point32, queue_size=1)
+        self.prediction_publisher = rospy.Publisher('/motion_model_pred' + name[-1], PointCloud, queue_size=1)
+        self.frame_id = 0
 
     def callback(self, msg):
         self._pose[0] = msg.x
@@ -195,12 +196,18 @@ class LocalisationPose(object):
         self.pose[1] += vel_y * dt
         self.pose[2] += vel_theta * dt
 
-        # Publish updated particle average
-        msg = Point32()
-        msg.x = self.pose[0]
-        msg.y = self.pose[1]
-        msg.z = self.pose[2]
+        msg = PointCloud()
+        msg.header.seq = self.frame_id
+        msg.header.stamp = rospy.Time.now()
+        msg.header.frame_id = '/tb3_'+str(self._name[-1])+'/pred'
+        pt = Point32()
+        pt.x = self.pose[0]
+        pt.y = self.pose[1]
+        pt.z = self.pose[2]
+        msg.points.append(pt)
+        #msg.header.frame_id = '/'+str(self._name)+'/pred'
         self.prediction_publisher.publish(msg)
+        self.frame_id += 1
 
     @property
     def ready(self):
@@ -221,7 +228,8 @@ def run(args):
     rate_limiter = rospy.Rate(refresh_Hz)
     publishers = []
     lasers = []
-    esimated_positions = []
+    estimated_positions = []
+    ground_truths = []
     pose_history = []
     for robot in ["tb3_0", "tb3_1", "tb3_2"]:
         publishers.append(rospy.Publisher(
@@ -229,7 +237,7 @@ def run(args):
         lasers.append(SimpleLaser(name=robot))
         # Keep track of groundtruth position for plotting purposes.
         ground_truths.append(GroundtruthPose(name=robot))
-        esimated_positions.append(LocalisationPose(name=robot))
+        estimated_positions.append(LocalisationPose(name=robot))
         pose_history.append([])
 
     # plotting values
@@ -247,7 +255,7 @@ def run(args):
     run_time_started = False
     while not rospy.is_shutdown():
         # Make sure all measurements are ready.
-        if not all(laser.ready for laser in lasers) or not all(groundtruth.ready for groundtruth in esimated_positions):
+        if not all(laser.ready for laser in lasers) or not all(groundtruth.ready for groundtruth in estimated_positions):
             rate_limiter.sleep()
             start_timer = time.time()
             continue
@@ -265,7 +273,7 @@ def run(args):
                 publishers[index].publish(vel_msg)
 
                 """# Log groundtruth positions in /tmp/gazebo_exercise.txt
-                pose_histories[index].append(esimated_positions[index].pose)
+                pose_histories[index].append(estimated_positions[index].pose)
                 if len(pose_histories[index]) % 10:
                     with open('/tmp/gazebo_robot_' + robot + '.txt', 'a') as fp:
                         #fp.write('\n'.join(','.join(str(v) for v in p) for p in pose_history) + '\n')
@@ -283,7 +291,7 @@ def run(args):
                 robot = "tb3_%s" % index
                 publishers[index].publish(vel_msg)
                 # Log groundtruth positions in /tmp/gazebo_exercise.txt
-                """pose_histories[index].append(esimated_positions[index].pose)
+                """pose_histories[index].append(estimated_positions[index].pose)
                 if len(pose_histories[index]) % 10:
                     with open('/tmp/gazebo_robot_' + robot + '.txt', 'a') as fp:
                         #fp.write('\n'.join(','.join(str(v) for v in p) for p in pose_history) + '\n')
@@ -293,7 +301,7 @@ def run(args):
             # TODO - must switch to localization result
             #time.sleep(1)
             # Transposing location
-            robot_locations = [(i.pose[0] , i.pose[1]) for i in esimated_positions]
+            robot_locations = [(i.pose[0] , i.pose[1]) for i in estimated_positions]
             print(robot_locations)
             robot_paths = divide(args, robot_locations[:NUMBER_ROBOTS], ROBOT_SPEED)
             if robot_paths == False:
@@ -304,7 +312,7 @@ def run(args):
                 continue
             paths_found = True
             print(robot_locations)
-            for i in esimated_positions:
+            for i in estimated_positions:
                 print(i.pose)
             print()
             for i in robot_paths:
@@ -318,7 +326,7 @@ def run(args):
             robot = "tb3_%s" % index
 
             current_target = robot_paths[index][targets[index]]
-            current_position = esimated_positions[index].pose.copy()
+            current_position = estimated_positions[index].pose.copy()
             # Check if at target.
             distance = ((current_target[0] - current_position[0]) ** 2
                      +  (current_target[1] - current_position[1]) ** 2) ** 0.5

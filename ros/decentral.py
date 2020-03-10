@@ -19,6 +19,7 @@ from sensor_msgs.msg import LaserScan
 from gazebo_msgs.msg import ModelStates
 from tf.transformations import euler_from_quaternion
 
+
 def normalize(v):
   n = np.linalg.norm(v)
   if n < 1e-2:
@@ -30,6 +31,17 @@ all_robots = []
 
 use_locpose = True
 rrt_only = False
+
+
+def intersect_line_circle(p1, p2, c, r):
+  p12 = p2 - p1
+  n = normalize(p12)
+
+  p1c = c - p1
+  v = np.abs(n[0] * p1c[1] - n[1] * p1c[0])
+
+  return v <= r
+
 
 class Robot:
 
@@ -48,6 +60,8 @@ class Robot:
     self.route_target_index = 0
     self.route_arrived = False
     self.locpose = full_coverage.LocalisationPose(name)
+    self.current_pose = None
+    self.old_pose = None
 
     self.meeting_times = {}
 
@@ -56,14 +70,26 @@ class Robot:
   # Use this instead of groundtruth as this will be replaced with Sam's thing
   def pose(self):
     if use_locpose:
-      return self.locpose.pose
+      pos = self.locpose.pose
     else:
-      return self.groundtruth.pose
+      pos = self.groundtruth.pose
+
+    if self.old_pose is None:
+      self.current_pose = self.old_pose = pos.copy()
+
+    if not np.array_equal(pos, self.current_pose):
+      self.old_pose = self.current_pose
+      self.current_pose = pos
+
+    return pos
 
   # Numpy array of position
   def position_array(self):
     pose = self.pose()
     return np.array([pose[0], pose[1]], dtype=np.float32)
+
+  def old_position_array(self):
+    return np.array([self.old_pose[0], self.old_pose[1]], dtype=np.float32)
 
   def check_ready(self):
     return self.laser.ready and self.groundtruth.ready and (not use_locpose or self.locpose.ready)
@@ -109,19 +135,44 @@ class Robot:
       return False
     else:
       self.route_poses = scaled_poses
+      self.poses_to_path()
       return True
+
+  def poses_to_path(self):
+    self.path = []
+
+    old_pos = None
+
+    for pose in self.route_poses:
+      pos = np.array([pose[0], pose[1]], np.float32)
+
+      if old_pos is not None:
+        while True:
+          diff = pos - old_pos
+          dist = np.linalg.norm(diff)
+          if dist < 0.05:
+            break
+
+          old_pos += 0.05 * (diff / dist)
+          self.path.append(old_pos)
+
+
+      self.path.append(pos)
+      old_pos = pos
 
   def move_on_region_route(self, speed, epsilon):
     current_target = self.route_poses[self.route_target_index]
+    ct_pos = np.array([current_target[0], current_target[1]], dtype=np.float32)
     current_position = self.pose().copy()
     # Check if at target.
     distance = ((current_target[0] - current_position[0]) ** 2
                 + (current_target[1] - current_position[1]) ** 2) ** 0.5
 
-    if distance < divide_areas.ROBOT_RADIUS or self.route_arrived:
+    # if distance < 2 * divide_areas.ROBOT_RADIUS or self.route_arrived:
+    if intersect_line_circle(self.old_position_array(), self.position_array(), ct_pos, 2 * divide_areas.ROBOT_RADIUS) or self.route_arrived:
       # Keep moving for a bit
       self.route_arrived = True
-      if np.absolute((current_target[2]) - current_position[2]) < (0.03):  # Within 3 degrees
+      if np.absolute((current_target[2]) - current_position[2]) < 0.20:  # Within 3 degrees
         # print("Next")
         self.route_arrived = False
         self.route_target_index += 1
@@ -148,7 +199,7 @@ class Robot:
           remaining = 2 * np.pi - difference
           w = -1 * max(0.75, remaining)
 
-        self.send_move_command(u, w)
+        self.send_move_avoiding(u, w)
         # w = 0.2 if ((current_target[2]) - current_position[2]) > 0 and (current_target[2] - current_position[2]) < np.pi else -0.2
     else:
       # print("Moving")
@@ -168,11 +219,8 @@ class Robot:
     w = (1 / epsilon) * (-x * np.sin(theta) + y * np.cos(theta))
     self.send_move_command(u, w)
 
-  def send_linearized_move_avoiding(self, x, y, epsilon):
+  def send_move_avoiding(self, u, w):
     theta = self.pose()[2]
-
-    u = x * np.cos(theta) + y * np.sin(theta)
-    w = (1 / epsilon) * (-x * np.sin(theta) + y * np.cos(theta))
 
     [front, front_left, front_right, left, right] = self.laser.measurements
 
@@ -212,25 +260,33 @@ class Robot:
 
     self.send_move_command(u, w)
 
+  def send_linearized_move_avoiding(self, x, y, epsilon):
+    theta = self.pose()[2]
+
+    u = x * np.cos(theta) + y * np.sin(theta)
+    w = (1 / epsilon) * (-x * np.sin(theta) + y * np.cos(theta))
+
+    self.send_move_avoiding(u, w)
+
+
   def move_rule_based(self):
     u, w = obstacle_avoidance.rule_based(*self.laser.measurements)
     self.send_move_command(u, w)
 
   def update_navigation(self):
 
-    if not rrt_only and self.route_poses is not None:
-      self.move_on_region_route(0.3, 0.1)
-    elif len(self.path) > 2:
-      self.move_on_path(0.3, 0.1)
+    # if not rrt_only and self.route_poses is not None:
+    ##  self.move_on_region_route(0.15, 0.2)
+    if len(self.path) > 3:
+      self.move_on_path(0.15, 0.2)
     else:
       if not self.create_region_poses():
         self.target_random_in_region()
         self.move_rule_based()
 
   def move_on_path(self, speed, epsilon):
-    dist = np.linalg.norm(self.position_array() - self.path[0])
 
-    if dist < 0.06:
+    if intersect_line_circle(self.old_position_array(), self.position_array(), self.path[0], 0.06):
       del self.path[0]
       if len(self.path) == 0:
         return
@@ -249,14 +305,14 @@ class Robot:
         closest_dist = dist
         closest_index = index
 
-    target_index = closest_index + 1
+    target_index = closest_index + 2
     if target_index >= len(self.path):
       target_index = len(self.path) - 1
 
     target = self.path[target_index]
 
     # Keep emptying the points we've passed
-    if target_index > 2:
+    if target_index > 3:
       del self.path[0]
 
     diff = target - self.position_array()

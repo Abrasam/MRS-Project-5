@@ -62,6 +62,7 @@ class Robot:
     self.locpose = full_coverage.LocalisationPose(name)
     self.current_pose = None
     self.old_pose = None
+    self.pose_history = []
 
     self.meeting_times = {}
 
@@ -283,6 +284,12 @@ class Robot:
       if not self.create_region_poses():
         self.target_random_in_region()
         self.move_rule_based()
+
+    self.pose_history.append(self.groundtruth.pose)
+    if len(self.pose_history) % 10:
+      with open('/tmp/gazebo_robot_nav_tb3_' + str(self.id) + '.txt', 'a') as fp:
+        fp.write('\n'.join(','.join(str(v) for v in p) for p in self.pose_history) + '\n')
+        self.pose_history = []
 
   def move_on_path(self, speed, epsilon):
 

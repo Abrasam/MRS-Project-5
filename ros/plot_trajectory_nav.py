@@ -29,7 +29,7 @@ if __name__ == '__main__':
 
 
   img = plt.imread("small_map.png")
-  plt.imshow(img, extent=[-4, 4, -4, 4])
+  plt.imshow(img, extent=[-2.15, 2.15, -2.15, 2.15])
 
 
   # Axes and stuff

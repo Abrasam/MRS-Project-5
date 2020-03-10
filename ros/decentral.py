@@ -28,7 +28,7 @@ def normalize(v):
 
 all_robots = []
 
-use_locpose = True
+use_locpose = False
 
 class Robot:
 
@@ -43,6 +43,9 @@ class Robot:
     self.laser = obstacle_avoidance.SimpleLaser(name=name)
     self.groundtruth = obstacle_avoidance.GroundtruthPose(name=name)
     self.path = []
+    self.route_poses = None
+    self.route_target_index = 0
+    self.route_arrived = False
     self.locpose = full_coverage.LocalisationPose(name)
 
     self.meeting_times = {}
@@ -77,6 +80,77 @@ class Robot:
     vel_msg.linear.x = u
     vel_msg.angular.z = w
     self.publisher.publish(vel_msg)
+
+  def create_region_poses(self):
+    sgi = self.scaled_grid_index()
+    if self.owned[sgi] != 1:
+      # Luke's code requires us to be inside the region
+      return False
+
+    new_edges = divide_areas.calculate_mst(self.occupancy_grid, self.owned.astype(np.int32), sgi)
+
+    poses = divide_areas.generate_route_poses(
+      new_edges, sgi, self.occupancy_grid, [sgi], self.owned, lines_plot=new_edges)
+    scaled_poses = []
+    for a, b, c in poses:
+      a, b = self.original_grid.get_position(a * self.scaling, b * self.scaling)
+      # Flip C in diagonal and vertical to match with Gazebo.
+      c += np.pi / 2
+      if c > np.pi:
+        c -= 2 * np.pi
+      scaled_poses.append((a, b, c))
+
+    if not scaled_poses:
+      self.route_poses = None
+      return False
+    else:
+      self.route_poses = scaled_poses
+      return True
+
+  def move_on_region_route(self, speed, epsilon):
+    current_target = self.route_poses[self.route_target_index]
+    current_position = self.pose().copy()
+    # Check if at target.
+    distance = ((current_target[0] - current_position[0]) ** 2
+                + (current_target[1] - current_position[1]) ** 2) ** 0.5
+
+    if distance < divide_areas.ROBOT_RADIUS or self.route_arrived:
+      # Keep moving for a bit
+      self.route_arrived = True
+      if np.absolute((current_target[2]) - current_position[2]) < (0.03):  # Within 3 degrees
+        # print("Next")
+        self.route_arrived = False
+        self.route_target_index += 1
+        self.route_target_index %= len(self.route_poses)
+        current_target = self.route_poses[self.route_target_index]
+        # print(current_target)
+        v = full_coverage.get_velocity(current_position, current_target, speed)
+        # v = np.array([1, 0])
+        u, w = full_coverage.feedback_linearized(current_position.copy(), v, epsilon=epsilon)
+        # u=0.5
+        # w=0
+      else:
+        # print("Rotating")
+        # Rotate to correct orientation
+        u = 0
+        difference = ((current_target[2] % (2 * np.pi)) - (current_position[2] % (2 * np.pi))) % (2 * np.pi)
+
+        if difference < np.pi:
+          # Difference heading to 0
+          w = max(0.75, difference)
+        else:
+          remaining = 2 * np.pi - difference
+          w = -1 * max(0.75, remaining)
+        # w = 0.2 if ((current_target[2]) - current_position[2]) > 0 and (current_target[2] - current_position[2]) < np.pi else -0.2
+    else:
+      # print("Moving")
+      v = full_coverage.get_velocity(current_position, current_target, speed)
+      # v = np.array([1, 0])
+      u, w = full_coverage.feedback_linearized(current_position, v, epsilon=epsilon)
+      # u = 0.5
+      # w = 0
+
+      self.send_move_command(u, w)
 
   def send_linearized_move(self, x, y, epsilon):
     theta = self.pose()[2]
@@ -135,11 +209,14 @@ class Robot:
 
   def update_navigation(self):
 
-    if len(self.path) > 2:
+    if self.route_poses is not None:
+      self.move_on_region_route(0.3, 0.1)
+    elif len(self.path) > 2:
       self.move_on_path(0.3, 0.1)
     else:
-      self.target_random_in_region()
-      self.move_rule_based()
+      if not self.create_region_poses():
+        self.target_random_in_region()
+        self.move_rule_based()
 
   def move_on_path(self, speed, epsilon):
     dist = np.linalg.norm(self.position_array() - self.path[0])
@@ -256,6 +333,7 @@ class Robot:
 
       self.owned = us_owned
       other.owned = other_owned
+      self.route_poses = None
     except Exception as e:
       print("The trade failed")
       print(e.message)

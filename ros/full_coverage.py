@@ -14,6 +14,7 @@ from divide_areas import divide
 import time
 
 from copy import deepcopy
+import os
 
 # Robot motion commands:
 # http://docs.ros.org/api/geometry_msgs/html/msg/Twist.html
@@ -179,11 +180,27 @@ class LocalisationPose(object):
         rospy.Subscriber('/locpos'+name[-1], Point32, self.callback)
         self._pose = np.array([np.nan, np.nan, np.nan], dtype=np.float32)
         self._name = name
+        self.prediction_publisher = rospy.Publisher('/motion_model_pred' + name[-1], Point32, queue_size=1)
 
     def callback(self, msg):
         self._pose[0] = msg.x
         self._pose[1] = msg.y
         self._pose[2] = msg.z
+
+    def apply_motion_model(self, u, w, dt):
+        vel_x = u * np.cos(self._pose[2])
+        vel_y = u * np.sin(self._pose[2])
+        vel_theta = w
+        self.pose[0] += vel_x * dt
+        self.pose[1] += vel_y * dt
+        self.pose[2] += vel_theta * dt
+
+        # Publish updated particle average
+        msg = Point32()
+        msg.x = self.pose[0]
+        msg.y = self.pose[1]
+        msg.z = self.pose[2]
+        self.prediction_publisher.publish(msg)
 
     @property
     def ready(self):
@@ -199,24 +216,26 @@ def run(args):
     avoidance_method = globals()[args.mode]
 
     # Update control every 100 ms.
-    rate_limiter = rospy.Rate(10)
+    refresh_Hz = 10
+    loop_time = 1.0 / refresh_Hz
+    rate_limiter = rospy.Rate(refresh_Hz)
     publishers = []
     lasers = []
-    ground_truths = []
+    esimated_positions = []
     pose_history = []
     for robot in ["tb3_0", "tb3_1", "tb3_2"]:
         publishers.append(rospy.Publisher(
             '/' + robot + '/cmd_vel', Twist, queue_size=5))
         lasers.append(SimpleLaser(name=robot))
         # Keep track of groundtruth position for plotting purposes.
-        #ground_truths.append(GroundtruthPose(name=robot))
-        ground_truths.append()
+        ground_truths.append(GroundtruthPose(name=robot))
+        esimated_positions.append(LocalisationPose(name=robot))
         pose_history.append([])
 
     # plotting values
     times = []
     for i in range(NUMBER_ROBOTS):
-      with open('/tmp/gazebo_robot_tb3_' + str(i) + '.txt', 'w'):
+      with open('/tmp/gazebo_robot_nav_tb3_' + str(i) + '.txt', 'w'):
         pass
     counter = 0
 
@@ -228,12 +247,15 @@ def run(args):
     run_time_started = False
     while not rospy.is_shutdown():
         # Make sure all measurements are ready.
-        if not all(laser.ready for laser in lasers) or not all(groundtruth.ready for groundtruth in ground_truths):
+        if not all(laser.ready for laser in lasers) or not all(groundtruth.ready for groundtruth in esimated_positions):
             rate_limiter.sleep()
             start_timer = time.time()
             continue
 
-        if time.time() - start_timer < 2: # Run around for 10 seconds
+        #print(os.getcwd())
+        #if time.time() - start_timer < 2: # Run around for 10 seconds
+
+        while not os.path.exists("/go"):
             for index in range(NUMBER_ROBOTS):
                 robot = "tb3_%s" % index
                 u, w = avoidance_method(*lasers[index].measurements)
@@ -243,7 +265,7 @@ def run(args):
                 publishers[index].publish(vel_msg)
 
                 """# Log groundtruth positions in /tmp/gazebo_exercise.txt
-                pose_histories[index].append(ground_truths[index].pose)
+                pose_histories[index].append(esimated_positions[index].pose)
                 if len(pose_histories[index]) % 10:
                     with open('/tmp/gazebo_robot_' + robot + '.txt', 'a') as fp:
                         #fp.write('\n'.join(','.join(str(v) for v in p) for p in pose_history) + '\n')
@@ -261,7 +283,7 @@ def run(args):
                 robot = "tb3_%s" % index
                 publishers[index].publish(vel_msg)
                 # Log groundtruth positions in /tmp/gazebo_exercise.txt
-                """pose_histories[index].append(ground_truths[index].pose)
+                """pose_histories[index].append(esimated_positions[index].pose)
                 if len(pose_histories[index]) % 10:
                     with open('/tmp/gazebo_robot_' + robot + '.txt', 'a') as fp:
                         #fp.write('\n'.join(','.join(str(v) for v in p) for p in pose_history) + '\n')
@@ -269,9 +291,9 @@ def run(args):
 
             # Locations - currenlty use ground truth
             # TODO - must switch to localization result
-            time.sleep(1)
+            #time.sleep(1)
             # Transposing location
-            robot_locations = [(i.pose[0] , i.pose[1]) for i in ground_truths]
+            robot_locations = [(i.pose[0] , i.pose[1]) for i in esimated_positions]
             print(robot_locations)
             robot_paths = divide(args, robot_locations[:NUMBER_ROBOTS], ROBOT_SPEED)
             if robot_paths == False:
@@ -282,7 +304,7 @@ def run(args):
                 continue
             paths_found = True
             print(robot_locations)
-            for i in ground_truths:
+            for i in esimated_positions:
                 print(i.pose)
             print()
             for i in robot_paths:
@@ -296,7 +318,7 @@ def run(args):
             robot = "tb3_%s" % index
 
             current_target = robot_paths[index][targets[index]]
-            current_position = ground_truths[index].pose.copy()
+            current_position = esimated_positions[index].pose.copy()
             # Check if at target.
             distance = ((current_target[0] - current_position[0]) ** 2
                      +  (current_target[1] - current_position[1]) ** 2) ** 0.5
@@ -343,10 +365,11 @@ def run(args):
             vel_msg.linear.x = u
             vel_msg.angular.z = w
             publishers[index].publish(vel_msg)
+            estimated_positions[index].apply_motion_model(u, w, loop_time)
 
             pose_history[index].append(ground_truths[index].pose)
             if len(pose_history[index]) % 10:
-              with open('/tmp/gazebo_robot_tb3_' + str(index) + '.txt', 'a') as fp:
+              with open('/tmp/gazebo_robot_nav_tb3_' + str(index) + '.txt', 'a') as fp:
                 fp.write('\n'.join(','.join(str(v) for v in p) for p in pose_history[index]) + '\n')
                 pose_history[index] = []
 

@@ -259,7 +259,7 @@ def run(args):
             rate_limiter.sleep()
             start_timer = time.time()
             continue
-
+        print(2)
         #print(os.getcwd())
         #if time.time() - start_timer < 2: # Run around for 10 seconds
 
@@ -335,7 +335,8 @@ def run(args):
                 # Keep moving for a bit
                 arrived[index] = True
                 if np.absolute((current_target[2])-current_position[2]) < (0.2): # Within 3 degrees
-                    #print("Next")
+                    if index == 0:
+                        print("Next")
                     arrived[index] = False
                     targets[index] += 1
                     targets[index] %= len(robot_paths[index])
@@ -347,7 +348,8 @@ def run(args):
                     #u=0.5
                     #w=0
                 else:
-                    #print("Rotating")
+                    if index == 0:
+                        print("Rotating")
                     # Rotate to correct orientation
                     u = 0
                     difference = ((current_target[2]%(2*np.pi)) - (current_position[2]%(2*np.pi)))%(2*np.pi)
@@ -360,14 +362,16 @@ def run(args):
                         w = -1*max(0.75, remaining)
                     #w = 0.2 if ((current_target[2]) - current_position[2]) > 0 and (current_target[2] - current_position[2]) < np.pi else -0.2
             else:
-                #print("Moving")
+                if index == 0:
+                    print("Moving")
                 v = get_velocity(deepcopy(current_position), deepcopy(current_target), ROBOT_SPEED)
                 #v = np.array([1, 0])
                 u, w = feedback_linearized(deepcopy(current_position), v, epsilon=EPSILON)
                 #u = 0.5
                 #w = 0
 
-            #print("%.2f, %.2f, %.2f -- %.2f, %.2f, %.2f     u:%.2f, w:%.2f" % (current_position[0], current_position[1], current_position[2], current_target[0], current_target[1], current_target[2], u, w))
+            if index == 0:
+                print("%.2f, %.2f, %.2f -- %.2f, %.2f, %.2f     u:%.2f, w:%.2f" % (current_position[0], current_position[1], current_position[2], current_target[0], current_target[1], current_target[2], u, w))
 
             vel_msg = Twist()
             vel_msg.linear.x = u

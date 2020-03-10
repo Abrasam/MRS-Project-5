@@ -1,0 +1,79 @@
+\documentclass{beamer}
+
+\usepackage{hyperref}
+\usepackage{graphicx}
+
+\title{Mobile Robot Systems Mini Project 5}
+\author{Sam Sully (sjs252), Paul Durbaba (pd452), Luke Dunsmore (ldd25)}
+\date{Lent 2020}
+	
+\begin{document}
+		
+	\frame{\titlepage}
+		
+	\begin{frame}
+		\frametitle{Project Outline}
+		\pause
+		\begin{itemize}
+			\item<2-> LIDAR based localisation (ex1)
+			\item<3-> Improve with range and bearing of other robots (sjs252)
+			\item<4-> Centralised approach to world coverage (ldd25)
+			\item<5-> Decentralised approach to world coverage (pd452)
+		\end{itemize}
+	\end{frame}
+	\begin{frame}
+		\frametitle{Localisation}
+		\pause
+		\begin{itemize}
+			\item<2->Particle filter
+			\item<3->LIDAR
+			\item<4->Range \& bearing
+		\end{itemize}
+	\end{frame}
+	\begin{frame}
+		\frametitle{LIDAR}
+		\[
+		w_i = \sum_{s_{j} \in \mathrm{Sensors}}\Phi(R(i,j), s_{ij}, \sigma^2)
+		\]
+		\begin{itemize}
+			\item $w_i$ = LIDAR weight of particle $i$
+			\item $s_{ij}$ = distance recorded by sensor $j$ on the robot
+			\item $\Phi(x,\mu,\sigma)$ = Gaussian PDF with mean $\mu$ and standard deviation $\sigma$ 
+			\item $R(i,j)$ = ray traced distance from particle $i$ in the direction of sensor $j$
+		\end{itemize}
+	\end{frame}
+	\begin{frame}
+		\frametitle{Range \& Bearing}
+		\[
+		\bar{w_i} = \sum_{r_j \in N_i}\sum_{p_k \in r_j}\Phi\left(
+		\begin{bmatrix}
+		D_i(p_k)\\
+		\Theta_i(p_k)
+		\end{bmatrix},
+		\begin{bmatrix}
+		d_j\\
+		\theta_j
+		\end{bmatrix},
+		\xi
+		\right)
+		\]
+		\begin{itemize}
+			\item $\bar{w_i}$ range \& bearing weight of particle $i$
+			\item $N_i$ = robot $i$'s neighbours
+			\item $p_k$ ranges over the set of particles from robot $r_j$ \item $d_j$ = received distance between this robot and robot $r_j$
+			\item $\theta_j$ = received bearing of this robot from $r_j$
+			\item $D_i(p_k)$  = distance between the particle $i$ on this robot and the particle $p_k$ from the other robot
+			\item $\Theta_i(p_k)$ = bearing between the particle $i$ and the particle $p_k$ on the other robot
+			\item $\xi$ = covariance matrix
+		\end{itemize}
+		Normalising factors omitted.
+	\end{frame}	
+	\begin{frame}
+		\frametitle{Performance Without Enhancement}
+		\includegraphics[width=\columnwidth]{figure_l2.png}
+	\end{frame}
+	\begin{frame}
+		\frametitle{Performance With Enhancement}
+		\includegraphics[width=\columnwidth]{figure_l1.png}
+	\end{frame}
+\end{document}

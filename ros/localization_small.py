@@ -68,10 +68,10 @@ class Particle(object):
 
 
   def move(self, delta_pose):
-    self._pose[YAW] += delta_pose[YAW] * np.random.normal(loc=1, scale=0.2)
+    self._pose[YAW] += delta_pose[YAW] * np.random.normal(loc=1, scale=0.3)
     self._pose[YAW] %= 2*np.pi
 
-    dx = delta_pose[X] * np.random.normal(loc=1, scale=0.2)
+    dx = delta_pose[X] * np.random.normal(loc=1, scale=0.3)
 
     self._pose[X] += dx*np.cos(self._pose[YAW])
     self._pose[Y] += dx*np.sin(self._pose[YAW])
@@ -124,7 +124,7 @@ class Particle(object):
     prob *= norm.pdf(cap(front_right), dist(-np.pi/4), sigma)
     prob *= norm.pdf(cap(left), dist(np.pi/2), sigma)
     prob *= norm.pdf(cap(right), dist(-np.pi/2), sigma)
-    prob /=1 # normalise to be within range 0-1
+    #prob /=1 # normalise to be within range 0-1
     self._weight = prob if self.is_valid() else 0
 
   def ray_trace(self, angle):
@@ -365,17 +365,19 @@ def run(args):
           if dir_vec.dot(np.array([-between_vec[Y],between_vec[X]])) > 0:
             ang = -ang
           raytrace = groundtruth[j].ray_trace(ang)
-          if raytrace >= dist and dist < 3.5:
+          if raytrace >= dist and dist < 4: # range of 4m (los)
             messages.append((dist*np.random.normal(loc=1, scale=0.1), ang*np.random.normal(loc=1, scale=0.1), list(map(lambda p: Particle().copy(p), particles[j])) if j == 0 else list(map(lambda p: p.set(groundtruth[j].pose+normalize(np.random.randn())), [Particle() for _ in range(num_particles)])))) # assume robots 1/2 are well localised
+
       # Update particle positions and weights.
       total_weight = 0.
+      #t = time.time()
       delta_pose = motion[i].delta_pose
       for _, p in enumerate(particles[i]):
         p.move(delta_pose)
         p.compute_weight(*laser[i].measurements)
         p.refine_weight(messages)
         total_weight += p.weight
-
+      #print(time.time()-t)
       # Low variance re-sampling of particles.
       new_particles = []
       random_weight = np.random.rand() * total_weight / num_particles

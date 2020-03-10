@@ -29,6 +29,7 @@ def normalize(v):
 all_robots = []
 
 use_locpose = True
+rrt_only = False
 
 class Robot:
 
@@ -82,6 +83,9 @@ class Robot:
     self.publisher.publish(vel_msg)
 
   def create_region_poses(self):
+    if rrt_only:
+      return
+
     sgi = self.scaled_grid_index()
     if self.owned[sgi] != 1:
       # Luke's code requires us to be inside the region
@@ -214,7 +218,7 @@ class Robot:
 
   def update_navigation(self):
 
-    if self.route_poses is not None:
+    if not rrt_only and self.route_poses is not None:
       self.move_on_region_route(0.3, 0.1)
     elif len(self.path) > 2:
       self.move_on_path(0.3, 0.1)

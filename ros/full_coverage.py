@@ -11,6 +11,7 @@ import rospy
 import scipy.special
 
 from divide_areas import divide
+from plot_trajectory_nav.py import plot_trajectory
 import time
 
 from copy import deepcopy
@@ -28,6 +29,8 @@ from tf.transformations import euler_from_quaternion
 
 import matplotlib.pylab as plt
 
+
+from threading import Thread
 
 NUMBER_ROBOTS = 3
 ROBOT_SPEED = 0.3
@@ -242,6 +245,7 @@ def run(args):
     start_timer = time.time()
     paths_found = False
     run_time_started = False
+    counter = 0
     while not rospy.is_shutdown():
         # Make sure all measurements are ready.
         if not all(laser.ready for laser in lasers) or not all(groundtruth.ready for groundtruth in estimated_positions):
@@ -380,6 +384,9 @@ def run(args):
               with open('/tmp/gazebo_robot_nav_tb3_' + str(index) + '.txt', 'a') as fp:
                 fp.write('\n'.join(','.join(str(v) for v in p) for p in pose_history[index]) + '\n')
                 pose_history[index] = []
+        if counter % 1000 == 0:
+            Thread(target=plot_trajectory, args=[occupancy_grid, assignments]).start()
+        counter += 1
 
         rate_limiter.sleep()
 

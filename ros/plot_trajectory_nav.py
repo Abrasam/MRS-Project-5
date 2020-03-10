@@ -7,7 +7,7 @@ import matplotlib.pylab as plt
 import Image
 
 
-if __name__ == '__main__':
+def plot_trajectory(occupancy_grid=None, assignments=None):
 
   fig = plt.figure()
 
@@ -20,17 +20,16 @@ if __name__ == '__main__':
     robot = robots[id]
     color = colors[id]
     color2 = estcolors[id]
-    data = np.genfromtxt('/tmp/gazebo_robot_nav_' + robot + '.txt', delimiter=',')
+    data = np.genfromtxt('/tmp/gazebo_robot_nav_' +
+                         robot + '.txt', delimiter=',')
 
     plt.plot(data[:, 0], data[:, 1], color, label=robot)
     if data.shape[1] == 6:
-      plt.plot(data[:, 3], data[:, 4], color2, label=robot+' estimated')
+      plt.plot(data[:, 3], data[:, 4], color2, label=robot + ' estimated')
     plt.legend()
-
 
   img = plt.imread("small_map.png")
   plt.imshow(img, extent=[-2.15, 2.15, -2.15, 2.15])
-
 
   # Axes and stuff
   plt.axis('equal')
@@ -43,7 +42,8 @@ if __name__ == '__main__':
     robot = robots[id]
     color = colors[id]
     color2 = estcolors[id]
-    data = np.genfromtxt('/tmp/gazebo_robot_nav_' + robot + '.txt', delimiter=',')
+    data = np.genfromtxt('/tmp/gazebo_robot_nav_' +
+                         robot + '.txt', delimiter=',')
     if data.shape[1] == 6:
       plt.figure()
       error = np.linalg.norm(data[:, :2] - data[:, 3:5], axis=1)
@@ -53,3 +53,6 @@ if __name__ == '__main__':
       plt.title(robot)
 
   plt.show()
+
+ if __name__ == '__main__':
+     plot_trajectory()

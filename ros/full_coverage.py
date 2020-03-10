@@ -19,7 +19,7 @@ import os
 
 # Robot motion commands:
 # http://docs.ros.org/api/geometry_msgs/html/msg/Twist.html
-from geometry_msgs.msg import Twist,Point32
+from geometry_msgs.msg import Twist, Point32
 # Laser scan message:
 # http://docs.ros.org/api/sensor_msgs/html/msg/LaserScan.html
 from sensor_msgs.msg import LaserScan, PointCloud, ChannelFloat32
@@ -37,6 +37,7 @@ ROBOT_SPEED = 0.3
 
 ROBOT_RADIUS = 0.105 / 2.
 EPSILON = ROBOT_RADIUS
+
 
 def braitenberg(front, front_left, front_right, left, right):
     u = 0.  # [m/s]
@@ -76,6 +77,7 @@ def rule_based(front, front_left, front_right, left, right):
         w = 0.5
     return u, w
 
+
 def feedback_linearized(pose, velocity, epsilon):
   u = 0.  # [m/s]
   w = 0.  # [rad/s] going counter-clockwise.
@@ -84,36 +86,40 @@ def feedback_linearized(pose, velocity, epsilon):
   # vector given as argument. Epsilon corresponds to the distance of
   # linearized point in front of the robot.
 
-  #print("velocity", velocity)
-  u = velocity[0]*np.cos(pose[2]) + velocity[1]*np.sin(pose[2])
-  w = (velocity[1]*np.cos(pose[2]) - velocity[0]*np.sin(pose[2])) / epsilon
+  # print("velocity", velocity)
+  u = velocity[0] * np.cos(pose[2]) + velocity[1] * np.sin(pose[2])
+  w = (velocity[1] * np.cos(pose[2]) - velocity[0] * np.sin(pose[2])) / epsilon
 
-  #u = velocity[0]*np.cos(pose[2]) + velocity[1]*np.sin(pose[2])
-  #w = velocity[2]
+  # u = velocity[0]*np.cos(pose[2]) + velocity[1]*np.sin(pose[2])
+  # w = velocity[2]
   return u, w
+
 
 def get_velocity(position, target, robot_speed, expected_direction=None):
 
   v = np.zeros_like(position)
-  #position[0] += EPSILON*np.cos(position[2])
-  #position[1] += EPSILON*np.sin(position[2])
+  # position[0] += EPSILON*np.cos(position[2])
+  # position[1] += EPSILON*np.sin(position[2])
   #
-  #target_vel = np.array([robot_speed*np.cos(target[2]), robot_speed*np.sin(target[2]), 0])
+  # target_vel = np.array([robot_speed*np.cos(target[2]), robot_speed*np.sin(target[2]), 0])
 
   # Head towards the next point
   v = (target - position)
-
+  print(v)
+  v /= np.linalg.norm(v[:2])
   if expected_direction != None:
       # Compare offset to the expected_direction. Bigger difference means further off course so more adjustment needed
       direct_direction = np.arctan2(v[1], v[0])
       difference = direct_direction - expected_direction
       # Move against a third of the offset?
       new_angle = direct_direction + difference * 0.33
-      v = np.array([np.cos(new_angle), np.sin(new_angle)]) # Only need 2 components?
+      v = np.array([np.cos(new_angle), np.sin(new_angle)])  # Only need 2 components?
+      print(difference)
+  print(v)
 
-  v /= np.linalg.norm(v[:2])
+
   v /= 10
-  #v += target_vel
+  # v += target_vel
   return v
 
 class SimpleLaser(object):
@@ -189,7 +195,7 @@ class GroundtruthPose(object):
 
 class LocalisationPose(object):
     def __init__(self, name='tb3_0'):
-        rospy.Subscriber('/locpos'+name[-1], Point32, self.callback)
+        rospy.Subscriber('/locpos' + name[-1], Point32, self.callback)
         self._pose = np.array([np.nan, np.nan, np.nan], dtype=np.float32)
         self._name = name
         self.prediction_publisher = rospy.Publisher('/loc_motion_model' + name[-1], PointCloud, queue_size=1)
@@ -198,8 +204,8 @@ class LocalisationPose(object):
     def callback(self, msg):
         self._pose[0] = msg.x
         self._pose[1] = msg.y
-        self._pose[2] = ((msg.z+np.pi) % (2*np.pi)) - np.pi# - np.pi # Possible source of bug
-        #print("YAW                    ", self._pose[2])
+        self._pose[2] = ((msg.z + np.pi) % (2 * np.pi)) - np.pi# - np.pi # Possible source of bug
+        # print("YAW                    ", self._pose[2])
 
     def apply_motion_model(self, u, w, dt):
         vel_x = u * np.cos(self._pose[2])
@@ -262,8 +268,8 @@ def run(args):
             start_timer = time.time()
             continue
 
-        #print(os.getcwd())
-        #if time.time() - start_timer < 2: # Run around for 10 seconds
+        # print(os.getcwd())
+        # if time.time() - start_timer < 2: # Run around for 10 seconds
 
         while not os.path.exists("/go"):
             for index in range(NUMBER_ROBOTS):
@@ -274,14 +280,15 @@ def run(args):
                 vel_msg.angular.z = w
                 publishers[index].publish(vel_msg)
                 if index == 0:
-                    print(ground_truths[index].pose, estimated_positions[index].pose)
+                    print(ground_truths[index].pose,
+                          estimated_positions[index].pose)
                 estimated_positions[index].apply_motion_model(u, w, loop_time)
 
                 """# Log groundtruth positions in /tmp/gazebo_exercise.txt
                 pose_histories[index].append(estimated_positions[index].pose)
                 if len(pose_histories[index]) % 10:
                     with open('/tmp/gazebo_robot_' + robot + '.txt', 'a') as fp:
-                        #fp.write('\n'.join(','.join(str(v) for v in p) for p in pose_history) + '\n')
+                        # fp.write('\n'.join(','.join(str(v) for v in p) for p in pose_history) + '\n')
                         pose_histories[index] = []"""
             rate_limiter.sleep()
             continue
@@ -299,14 +306,14 @@ def run(args):
                 """pose_histories[index].append(estimated_positions[index].pose)
                 if len(pose_histories[index]) % 10:
                     with open('/tmp/gazebo_robot_' + robot + '.txt', 'a') as fp:
-                        #fp.write('\n'.join(','.join(str(v) for v in p) for p in pose_history) + '\n')
+                        # fp.write('\n'.join(','.join(str(v) for v in p) for p in pose_history) + '\n')
                         pose_histories[index] = []"""
 
             # Locations - currenlty use ground truth
             # TODO - must switch to localization result
-            #time.sleep(1)
+            # time.sleep(1)
             # Transposing location
-            robot_locations = [(i.pose[0] , i.pose[1]) for i in estimated_positions]
+            robot_locations= [(i.pose[0], i.pose[1]) for i in estimated_positions]
             print(robot_locations)
             robot_paths = divide(args, robot_locations[:NUMBER_ROBOTS], ROBOT_SPEED)
             if robot_paths == False:
@@ -334,67 +341,72 @@ def run(args):
             current_position = estimated_positions[index].pose.copy()
             # Check if at target.
             distance = ((current_target[0] - current_position[0]) ** 2
-                     +  (current_target[1] - current_position[1]) ** 2) ** 0.5
+                     + (current_target[1] - current_position[1]) ** 2) ** 0.5
 
-            if distance < 4*ROBOT_RADIUS or arrived[index]:
+            if distance < 4 * ROBOT_RADIUS or arrived[index]:
                 # Keep moving for a bit
                 arrived[index] = True
-                if np.absolute((current_target[2])-current_position[2]) < (0.2): # Within 3 degrees
+                # Within 3 degrees
+                if np.absolute((current_target[2]) - current_position[2]) < (0.2):
                     """if index == 0:
                         print("Next")"""
                     arrived[index] = False
                     targets[index] += 1
                     targets[index] %= len(robot_paths[index])
                     current_target = robot_paths[index][targets[index]]
-                    #print(current_target)
-                    v = get_velocity(current_position.copy(), deepcopy(current_target), ROBOT_SPEED, expected_direction=robot_paths[index][targets[index]-1][2])
-                    #v = np.array([1, 0])
+                    # print(current_target)
+                    v = get_velocity(current_position.copy(), deepcopy(current_target), ROBOT_SPEED, expected_direction=robot_paths[index][targets[index] - 1][2])
+                    # v = np.array([1, 0])
                     u, w = feedback_linearized(current_position.copy(), v, epsilon=EPSILON)
-                    #u=0.5
-                    #w=0
+                    # u=0.5
+                    # w=0
                 else:
                     """if index == 0:
                         print("Rotating")"""
                     # Rotate to correct orientation
                     u = 0
-                    difference = ((current_target[2]%(2*np.pi)) - (current_position[2]%(2*np.pi)))%(2*np.pi)
+                    difference = ((current_target[2] % (2 * np.pi)) - (current_position[2] % (2 * np.pi))) % (2 * np.pi)
 
                     if difference < np.pi:
                         # Difference heading to 0
-                        #w = max(0.25, difference
+                        # w = max(0.25, difference
                         w = 0.25
                     else:
-                        remaining = 2*np.pi - difference
-                        #w = -1*max(0.25, remaining)
+                        remaining = 2 * np.pi - difference
+                        # w = -1*max(0.25, remaining)
                         w = -0.25
-                    #w = 0.2 if ((current_target[2]) - current_position[2]) > 0 and (current_target[2] - current_position[2]) < np.pi else -0.2
+                    # w = 0.2 if ((current_target[2]) - current_position[2]) > 0 and (current_target[2] - current_position[2]) < np.pi else -0.2
             else:
                 """if index == 0:
                     print("Moving")"""
-                v = get_velocity(deepcopy(current_position), deepcopy(current_target), ROBOT_SPEED, expected_direction=robot_paths[index][targets[index]-1][2])
-                #v = np.array([1, 0])
+                v = get_velocity(deepcopy(current_position), deepcopy(current_target), ROBOT_SPEED, expected_direction=robot_paths[index][targets[index] - 1][2])
+                # v = np.array([1, 0])
                 u, w = feedback_linearized(deepcopy(current_position), v, epsilon=EPSILON)
-                #u = 0.5
-                #w = 0
+                # u = 0.5
+                # w = 0
 
             """if index == 0:
-                print("%.2f, %.2f, %.2f -- %.2f, %.2f, %.2f     u:%.2f, w:%.2f" % (current_position[0], current_position[1], current_position[2], current_target[0], current_target[1], current_target[2], u, w))
+                print("%.2f, %.2f, %.2f -- %.2f, %.2f, %.2f     u:%.2f, w:%.2f" %
+                      (current_position[0], current_position[1], current_position[2], current_target[0], current_target[1], current_target[2], u, w))
 """
             vel_msg = Twist()
             vel_msg.linear.x = u
             vel_msg.angular.z = w
             publishers[index].publish(vel_msg)
             if index == 0:
-                print(ground_truths[index].pose, estimated_positions[index].pose)
+                print(ground_truths[index].pose,
+                      estimated_positions[index].pose)
             estimated_positions[index].apply_motion_model(u, w, loop_time)
 
             pose_history[index].append(ground_truths[index].pose)
             if len(pose_history[index]) % 10:
               with open('/tmp/gazebo_robot_nav_tb3_' + str(index) + '.txt', 'a') as fp:
-                fp.write('\n'.join(','.join(str(v) for v in p) for p in pose_history[index]) + '\n')
+                fp.write('\n'.join(','.join(str(v) for v in p)
+                         for p in pose_history[index]) + '\n')
                 pose_history[index] = []
         """if counter % 1000 == 0:
-            Thread(target=plot_trajectory, args=[occupancy_grid, assignments]).start()
+            Thread(target=plot_trajectory, args=[
+                   occupancy_grid, assignments]).start()
         counter += 1"""
 
         rate_limiter.sleep()
@@ -404,7 +416,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Runs obstacle avoidance')
     parser.add_argument('--mode', action='store', default='braitenberg',
                         help='Method.', choices=['braitenberg', 'rule_based'])
-    #parser.add_argument('--robot', action='store')
+    # parser.add_argument('--robot', action='store')
     parser.add_argument('--map', action='store', default='../ros/world_map',
                         help='Which map to use.')
     args, unknown = parser.parse_known_args()

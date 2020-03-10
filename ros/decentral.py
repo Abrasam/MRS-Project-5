@@ -8,6 +8,7 @@ import obstacle_avoidance
 import divide_areas
 import region_trade
 import rrt
+import full_coverage
 
 # http://docs.ros.org/api/geometry_msgs/html/msg/Twist.html
 from geometry_msgs.msg import Twist
@@ -27,6 +28,8 @@ def normalize(v):
 
 all_robots = []
 
+use_locpose = True
+
 class Robot:
 
   def __init__(self, id, name, original_grid, occupancy_grid, scaling, owned):
@@ -40,6 +43,7 @@ class Robot:
     self.laser = obstacle_avoidance.SimpleLaser(name=name)
     self.groundtruth = obstacle_avoidance.GroundtruthPose(name=name)
     self.path = []
+    self.locpose = full_coverage.LocalisationPose(name)
 
     self.meeting_times = {}
 
@@ -47,7 +51,10 @@ class Robot:
 
   # Use this instead of groundtruth as this will be replaced with Sam's thing
   def pose(self):
-    return self.groundtruth.pose
+    if use_locpose:
+      return self.locpose.pose
+    else:
+      return self.groundtruth.pose
 
   # Numpy array of position
   def position_array(self):
@@ -55,7 +62,7 @@ class Robot:
     return np.array([pose[0], pose[1]], dtype=np.float32)
 
   def check_ready(self):
-    return self.laser.ready and self.groundtruth.ready
+    return self.laser.ready and self.groundtruth.ready and (not use_locpose or self.locpose.ready)
 
   # Tuple of grid index
   def scaled_grid_index(self):
@@ -128,8 +135,8 @@ class Robot:
 
   def update_navigation(self):
 
-    if len(self.path) > 0:
-      self.move_on_path(0.5, 0.1)
+    if len(self.path) > 2:
+      self.move_on_path(0.3, 0.1)
     else:
       self.target_random_in_region()
       self.move_rule_based()
@@ -142,7 +149,30 @@ class Robot:
       if len(self.path) == 0:
         return
 
-    target = self.path[0]
+    # MISSING: Return the velocity needed to follow the
+    # path defined by path_points. Assume holonomicity of the
+    # point located at position.
+
+    closest_index = 0
+    closest_dist = 10000
+
+    for index in range(0, len(self.path)):
+      point = self.path[index]
+      dist = np.linalg.norm(point - self.position_array())
+      if dist < closest_dist:
+        closest_dist = dist
+        closest_index = index
+
+    target_index = closest_index + 1
+    if target_index >= len(self.path):
+      target_index = len(self.path) - 1
+
+    target = self.path[target_index]
+
+    # Keep emptying the points we've passed
+    if target_index > 2:
+      del self.path[0]
+
     diff = target - self.position_array()
 
     move = normalize(diff) * speed

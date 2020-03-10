@@ -384,9 +384,9 @@ def run(args):
               with open('/tmp/gazebo_robot_nav_tb3_' + str(index) + '.txt', 'a') as fp:
                 fp.write('\n'.join(','.join(str(v) for v in p) for p in pose_history[index]) + '\n')
                 pose_history[index] = []
-        if counter % 1000 == 0:
+        """if counter % 1000 == 0:
             Thread(target=plot_trajectory, args=[occupancy_grid, assignments]).start()
-        counter += 1
+        counter += 1"""
 
         rate_limiter.sleep()
 

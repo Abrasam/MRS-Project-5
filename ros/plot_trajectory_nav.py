@@ -36,8 +36,8 @@ def plot_trajectory(occupancy_grid=None, assignments=None):
     plt.axis('equal')
     plt.xlabel('x')
     plt.ylabel('y')
-    plt.xlim([-6.5, 6.5])
-    plt.ylim([-6.5, 6.5])
+    #plt.xlim([-6.5, 6.5])
+    #plt.ylim([-6.5, 6.5])
 
     for id in range(0, 3):
         robot = robots[id]

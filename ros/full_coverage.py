@@ -223,7 +223,7 @@ def run(args):
     avoidance_method = globals()[args.mode]
 
     # Update control every 100 ms.
-    refresh_Hz = 10
+    refresh_Hz = 100
     loop_time = 1.0 / refresh_Hz
     rate_limiter = rospy.Rate(refresh_Hz)
     publishers = []
@@ -331,10 +331,10 @@ def run(args):
             distance = ((current_target[0] - current_position[0]) ** 2
                      +  (current_target[1] - current_position[1]) ** 2) ** 0.5
 
-            if distance < ROBOT_RADIUS or arrived[index]:
+            if distance < 4*ROBOT_RADIUS or arrived[index]:
                 # Keep moving for a bit
                 arrived[index] = True
-                if np.absolute((current_target[2])-current_position[2]) < (0.03): # Within 3 degrees
+                if np.absolute((current_target[2])-current_position[2]) < (0.2): # Within 3 degrees
                     #print("Next")
                     arrived[index] = False
                     targets[index] += 1

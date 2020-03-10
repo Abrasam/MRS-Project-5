@@ -28,7 +28,7 @@ if __name__ == '__main__':
     plt.legend()
 
 
-  img = plt.imread("world_map.png")
+  img = plt.imread("small_map.png")
   plt.imshow(img, extent=[-4, 4, -4, 4])
 
 

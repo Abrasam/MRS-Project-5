@@ -21,7 +21,7 @@ import os
 from geometry_msgs.msg import Twist,Point32
 # Laser scan message:
 # http://docs.ros.org/api/sensor_msgs/html/msg/LaserScan.html
-from sensor_msgs.msg import LaserScan, PointCloud
+from sensor_msgs.msg import LaserScan, PointCloud, ChannelFloat32
 # For groundtruth information.
 from gazebo_msgs.msg import ModelStates
 from tf.transformations import euler_from_quaternion
@@ -60,17 +60,17 @@ def rule_based(front, front_left, front_right, left, right):
 
     if front < 0.25:
         u = 0
-        w = -0.25
+        w = -0.5
     if front_left < 0.2:
         u = 0
-        w = -0.2
+        w = -0.5
     elif front_right < 0.2:
         u = 0
-        w = 0.2
+        w = 0.5
     elif left < 0.15:
-        w = -0.2
+        w = -0.5
     elif right < 0.15:
-        w = 0.2
+        w = 0.5
     return u, w
 
 def feedback_linearized(pose, velocity, epsilon):
@@ -100,7 +100,7 @@ def get_velocity(position, target, robot_speed):
   # Head towards the next point
   v = (target - position)
   v /= np.linalg.norm(v[:2])
-  v /= 3
+  v /= 10
   #v += target_vel
   return v
 
@@ -180,34 +180,23 @@ class LocalisationPose(object):
         rospy.Subscriber('/locpos'+name[-1], Point32, self.callback)
         self._pose = np.array([np.nan, np.nan, np.nan], dtype=np.float32)
         self._name = name
-        self.prediction_publisher = rospy.Publisher('/motion_model_pred' + name[-1], PointCloud, queue_size=1)
+        self.prediction_publisher = rospy.Publisher('/loc_motion_model' + name[-1], PointCloud, queue_size=1)
         self.frame_id = 0
 
     def callback(self, msg):
         self._pose[0] = msg.x
         self._pose[1] = msg.y
-        self._pose[2] = msg.z
+        self._pose[2] = ((msg.z+np.pi) % (2*np.pi)) - np.pi# - np.pi # Possible source of bug
+        #print("YAW                    ", self._pose[2])
 
     def apply_motion_model(self, u, w, dt):
         vel_x = u * np.cos(self._pose[2])
         vel_y = u * np.sin(self._pose[2])
         vel_theta = w
-        self.pose[0] += vel_x * dt
-        self.pose[1] += vel_y * dt
-        self.pose[2] += vel_theta * dt
+        self._pose[0] += vel_x * dt
+        self._pose[1] += vel_y * dt
+        self._pose[2] += vel_theta * dt
 
-        msg = PointCloud()
-        msg.header.seq = self.frame_id
-        msg.header.stamp = rospy.Time.now()
-        msg.header.frame_id = '/tb3_'+str(self._name[-1])+'/pred'
-        pt = Point32()
-        pt.x = self.pose[0]
-        pt.y = self.pose[1]
-        pt.z = self.pose[2]
-        msg.points.append(pt)
-        #msg.header.frame_id = '/'+str(self._name)+'/pred'
-        self.prediction_publisher.publish(msg)
-        self.frame_id += 1
 
     @property
     def ready(self):
@@ -223,7 +212,7 @@ def run(args):
     avoidance_method = globals()[args.mode]
 
     # Update control every 100 ms.
-    refresh_Hz = 10
+    refresh_Hz = 100
     loop_time = 1.0 / refresh_Hz
     rate_limiter = rospy.Rate(refresh_Hz)
     publishers = []
@@ -271,6 +260,9 @@ def run(args):
                 vel_msg.linear.x = u
                 vel_msg.angular.z = w
                 publishers[index].publish(vel_msg)
+                if index == 0:
+                    print(ground_truths[index].pose, estimated_positions[index].pose)
+                estimated_positions[index].apply_motion_model(u, w, loop_time)
 
                 """# Log groundtruth positions in /tmp/gazebo_exercise.txt
                 pose_histories[index].append(estimated_positions[index].pose)
@@ -331,11 +323,12 @@ def run(args):
             distance = ((current_target[0] - current_position[0]) ** 2
                      +  (current_target[1] - current_position[1]) ** 2) ** 0.5
 
-            if distance < ROBOT_RADIUS or arrived[index]:
+            if distance < 4*ROBOT_RADIUS or arrived[index]:
                 # Keep moving for a bit
                 arrived[index] = True
-                if np.absolute((current_target[2])-current_position[2]) < (0.03): # Within 3 degrees
-                    #print("Next")
+                if np.absolute((current_target[2])-current_position[2]) < (0.2): # Within 3 degrees
+                    """if index == 0:
+                        print("Next")"""
                     arrived[index] = False
                     targets[index] += 1
                     targets[index] %= len(robot_paths[index])
@@ -347,32 +340,39 @@ def run(args):
                     #u=0.5
                     #w=0
                 else:
-                    #print("Rotating")
+                    """if index == 0:
+                        print("Rotating")"""
                     # Rotate to correct orientation
                     u = 0
                     difference = ((current_target[2]%(2*np.pi)) - (current_position[2]%(2*np.pi)))%(2*np.pi)
 
                     if difference < np.pi:
                         # Difference heading to 0
-                        w = max(0.75, difference)
+                        #w = max(0.25, difference
+                        w = 0.25
                     else:
                         remaining = 2*np.pi - difference
-                        w = -1*max(0.75, remaining)
+                        #w = -1*max(0.25, remaining)
+                        w = -0.25
                     #w = 0.2 if ((current_target[2]) - current_position[2]) > 0 and (current_target[2] - current_position[2]) < np.pi else -0.2
             else:
-                #print("Moving")
+                """if index == 0:
+                    print("Moving")"""
                 v = get_velocity(deepcopy(current_position), deepcopy(current_target), ROBOT_SPEED)
                 #v = np.array([1, 0])
                 u, w = feedback_linearized(deepcopy(current_position), v, epsilon=EPSILON)
                 #u = 0.5
                 #w = 0
 
-            #print("%.2f, %.2f, %.2f -- %.2f, %.2f, %.2f     u:%.2f, w:%.2f" % (current_position[0], current_position[1], current_position[2], current_target[0], current_target[1], current_target[2], u, w))
-
+            """if index == 0:
+                print("%.2f, %.2f, %.2f -- %.2f, %.2f, %.2f     u:%.2f, w:%.2f" % (current_position[0], current_position[1], current_position[2], current_target[0], current_target[1], current_target[2], u, w))
+"""
             vel_msg = Twist()
             vel_msg.linear.x = u
             vel_msg.angular.z = w
             publishers[index].publish(vel_msg)
+            if index == 0:
+                print(ground_truths[index].pose, estimated_positions[index].pose)
             estimated_positions[index].apply_motion_model(u, w, loop_time)
 
             pose_history[index].append(ground_truths[index].pose)

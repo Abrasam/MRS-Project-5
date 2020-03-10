@@ -146,7 +146,7 @@ class Particle(object):
       center = np.array([x, y], dtype=np.float32)
       v = np.array([np.cos(angle + self._pose[YAW] + np.pi), np.sin(angle + self._pose[YAW] + np.pi)],
                    dtype=np.float32)
-      
+
       v1 = center - self._pose[:2]
       a = v.dot(v)
       b = 2. * v.dot(v1)
@@ -304,7 +304,7 @@ class GroundtruthPose(object):
       center = np.array([x, y], dtype=np.float32)
       v = np.array([np.cos(angle + self._pose[YAW] + np.pi), np.sin(angle + self._pose[YAW] + np.pi)],
                    dtype=np.float32)
-      
+
       v1 = center - self._pose[:2]
       a = v.dot(v)
       b = 2. * v.dot(v1)
@@ -385,7 +385,7 @@ def run(args):
       j = 0
       for m in range(len(particles[i])):
         next_boundary = random_weight + m * total_weight / num_particles
-        while next_boundary > current_boundary: 
+        while next_boundary > current_boundary:
           j = j + 1;
           if j >= num_particles:
             j = num_particles - 1

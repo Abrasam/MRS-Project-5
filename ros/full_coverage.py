@@ -184,21 +184,20 @@ def run(args):
     publishers = []
     lasers = []
     ground_truths = []
-    pose_histories = []
+    pose_history = []
     for robot in ["tb3_0", "tb3_1", "tb3_2"]:
         publishers.append(rospy.Publisher(
             '/' + robot + '/cmd_vel', Twist, queue_size=5))
         lasers.append(SimpleLaser(name=robot))
         # Keep track of groundtruth position for plotting purposes.
         ground_truths.append(GroundtruthPose(name=robot))
-        pose_histories.append([])
-    with open('/tmp/gazebo_exercise.txt', 'w'):
-        pass
+        pose_history.append([])
 
     # plotting values
     times = []
-    trajectory = [[], []]
-    poses = [[], []]
+    for i in range(NUMBER_ROBOTS):
+      with open('/tmp/gazebo_robot_tb3_' + str(i) + '.txt', 'w'):
+        pass
     counter = 0
 
     targets = [0] * NUMBER_ROBOTS
@@ -223,12 +222,12 @@ def run(args):
                 vel_msg.angular.z = w
                 publishers[index].publish(vel_msg)
 
-                # Log groundtruth positions in /tmp/gazebo_exercise.txt
+                """# Log groundtruth positions in /tmp/gazebo_exercise.txt
                 pose_histories[index].append(ground_truths[index].pose)
                 if len(pose_histories[index]) % 10:
                     with open('/tmp/gazebo_robot_' + robot + '.txt', 'a') as fp:
                         #fp.write('\n'.join(','.join(str(v) for v in p) for p in pose_history) + '\n')
-                        pose_histories[index] = []
+                        pose_histories[index] = []"""
             rate_limiter.sleep()
             continue
 
@@ -242,11 +241,11 @@ def run(args):
                 robot = "tb3_%s" % index
                 publishers[index].publish(vel_msg)
                 # Log groundtruth positions in /tmp/gazebo_exercise.txt
-                pose_histories[index].append(ground_truths[index].pose)
+                """pose_histories[index].append(ground_truths[index].pose)
                 if len(pose_histories[index]) % 10:
                     with open('/tmp/gazebo_robot_' + robot + '.txt', 'a') as fp:
                         #fp.write('\n'.join(','.join(str(v) for v in p) for p in pose_history) + '\n')
-                        pose_histories[index] = []
+                        pose_histories[index] = []"""
 
             # Locations - currenlty use ground truth
             # TODO - must switch to localization result
@@ -302,7 +301,7 @@ def run(args):
                     # Rotate to correct orientation
                     u = 0
                     difference = ((current_target[2]%(2*np.pi)) - (current_position[2]%(2*np.pi)))%(2*np.pi)
-                    print(difference)
+
                     if difference < np.pi:
                         # Difference heading to 0
                         w = max(0.75, difference)
@@ -320,45 +319,18 @@ def run(args):
 
             #print("%.2f, %.2f, %.2f -- %.2f, %.2f, %.2f     u:%.2f, w:%.2f" % (current_position[0], current_position[1], current_position[2], current_target[0], current_target[1], current_target[2], u, w))
 
-            """if u < 0 and targets[index] > 5:
-                vel_msg = Twist()
-                vel_msg.linear.x = 0
-                vel_msg.angular.z = 0
-                publishers[index].publish(vel_msg)
-                import sys
-                sys.exit()"""
-            #time.sleep(0.5)
-
-
-            """target = movement_functions[index](time.time() - run_time)
-            v = get_velocity(ground_truths[index].pose.copy(), target, ROBOT_SPEED)
-
-            u, w = feedback_linearized(ground_truths[index].pose.copy(), v, epsilon=EPSILON)
-            print("%.2f, %.2f, %.2f -- %.2f, %.2f, %.2f     u:%.2f, w:%.2f" % (ground_truths[index].pose[0], ground_truths[index].pose[1], ground_truths[index].pose[2], target[0], target[1], target[2], u, w))
-            times.append(time.time())
-            trajectory[0].append(target[0])
-            trajectory[1].append(target[1])
-            poses[0].append(ground_truths[index].pose[0])
-            poses[1].append(ground_truths[index].pose[1])
-            counter += 1"""
             vel_msg = Twist()
             vel_msg.linear.x = u
             vel_msg.angular.z = w
             publishers[index].publish(vel_msg)
-        """if counter % 100000 == 0:
-            fig = plt.figure()
-            plt.axis('equal')
-            plt.xlabel('x')
-            plt.ylabel('y')
-            plt.xlim([-4, 4])
-            plt.ylim([-4, 4])
 
-            plt.scatter(trajectory[0], trajectory[1], c = 'b', linewidths=0, edgecolors='face')
-            plt.scatter(poses[0], poses[1], c = 'r', linewidths=0, edgecolors='face')
-
-            run_time_pause = time.time() - run_time
-            plt.show()
-            run_time = time.time()-run_time_pause"""
+            pose_history[index].append(ground_truths[index].pose)
+            if len(pose_history[index]) % 10:
+              with open('/tmp/gazebo_robot_tb3_' + str(index) + '.txt', 'a') as fp:
+                fp.write('\n'.join(','.join(str(v) for v in p) for p in pose_history[index]) + '\n')
+                pose_history[index] = []
+        
+        rate_limiter.sleep()
 
 
 if __name__ == '__main__':

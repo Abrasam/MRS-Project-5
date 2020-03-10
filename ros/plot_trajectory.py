@@ -28,21 +28,16 @@ if __name__ == '__main__':
     plt.legend()
 
 
-  # Cylinder.
-  a = np.linspace(0., 2 * np.pi, 20)
-  x = np.cos(a) * .3 + .3
-  y = np.sin(a) * .3 + .2
-  plt.plot(x, y, 'k')
-  # Walls.
-  plt.plot([-2, 2], [-2, -2], 'k')
-  plt.plot([-2, 2], [2, 2], 'k')
-  plt.plot([-2, -2], [-2, 2], 'k')
-  plt.plot([2, 2], [-2, 2], 'k')
+  img = plt.imread("world_map.png")
+  plt.imshow(img, extent=[-4, 4, -4, 4])
+
+
+  # Axes and stuff
   plt.axis('equal')
   plt.xlabel('x')
   plt.ylabel('y')
-  plt.xlim([-2.5, 2.5])
-  plt.ylim([-2.5, 2.5])
+  plt.xlim([-6.5, 6.5])
+  plt.ylim([-6.5, 6.5])
   
   for id in range(0, 3):
     robot = robots[id]

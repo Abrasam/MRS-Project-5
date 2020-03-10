@@ -180,11 +180,27 @@ class LocalisationPose(object):
         rospy.Subscriber('/locpos'+name[-1], Point32, self.callback)
         self._pose = np.array([np.nan, np.nan, np.nan], dtype=np.float32)
         self._name = name
+        self.prediction_publisher = rospy.Publisher('/motion_model_pred' + name[-1], Point32, queue_size=1)
 
     def callback(self, msg):
         self._pose[0] = msg.x
         self._pose[1] = msg.y
         self._pose[2] = msg.z
+
+    def apply_motion_model(self, u, w, dt):
+        vel_x = u * np.cos(self._pose[2])
+        vel_y = u * np.sin(self._pose[2])
+        vel_theta = w
+        self.pose[0] += vel_x * dt
+        self.pose[1] += vel_y * dt
+        self.pose[2] += vel_theta * dt
+
+        # Publish updated particle average
+        msg = Point32()
+        msg.x = self.pose[0]
+        msg.y = self.pose[1]
+        msg.z = self.pose[2]
+        self.prediction_publisher.publish(msg)
 
     @property
     def ready(self):
@@ -200,7 +216,9 @@ def run(args):
     avoidance_method = globals()[args.mode]
 
     # Update control every 100 ms.
-    rate_limiter = rospy.Rate(10)
+    refresh_Hz = 10
+    loop_time = 1.0 / refresh_Hz
+    rate_limiter = rospy.Rate(refresh_Hz)
     publishers = []
     lasers = []
     esimated_positions = []
@@ -273,7 +291,7 @@ def run(args):
 
             # Locations - currenlty use ground truth
             # TODO - must switch to localization result
-            time.sleep(1)
+            #time.sleep(1)
             # Transposing location
             robot_locations = [(i.pose[0] , i.pose[1]) for i in esimated_positions]
             print(robot_locations)
@@ -347,6 +365,7 @@ def run(args):
             vel_msg.linear.x = u
             vel_msg.angular.z = w
             publishers[index].publish(vel_msg)
+            estimated_positions[index].apply_motion_model(u, w, loop_time)
 
             pose_history[index].append(ground_truths[index].pose)
             if len(pose_history[index]) % 10:

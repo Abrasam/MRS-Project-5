@@ -11,7 +11,7 @@ import rospy
 import scipy.special
 
 from divide_areas import divide
-from plot_trajectory_nav.py import plot_trajectory
+from plot_trajectory_nav import plot_trajectory
 import time
 
 from copy import deepcopy

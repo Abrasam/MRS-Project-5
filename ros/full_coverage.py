@@ -192,11 +192,11 @@ class LocalisationPose(object):
         vel_x = u * np.cos(self._pose[2])
         vel_y = u * np.sin(self._pose[2])
         vel_theta = w
-        self.pose[0] += vel_x * dt
-        self.pose[1] += vel_y * dt
-        self.pose[2] += vel_theta * dt
+        self._pose[0] += vel_x * dt
+        self._pose[1] += vel_y * dt
+        self._pose[2] += vel_theta * dt
 
-        msg = PointCloud()
+        """msg = PointCloud()
         msg.header.seq = self.frame_id
         msg.header.stamp = rospy.Time.now()
         msg.header.frame_id = '/tb3_'+str(self._name[-1])+'/pred'
@@ -206,7 +206,23 @@ class LocalisationPose(object):
         pt.z = self.pose[2]
         msg.points.append(pt)
         #msg.header.frame_id = '/'+str(self._name)+'/pred'
-        self.prediction_publisher.publish(msg)
+        self.prediction_publisher.publish(msg)"""
+        particle_msg = PointCloud()
+        particle_msg.header.seq = frame_id
+        particle_msg.header.stamp = rospy.Time.now()
+        particle_msg.header.frame_id = '/tb3_'+str(index[-1])+'/odom'
+        intensity_channel = ChannelFloat32()
+        intensity_channel.name = 'intensity'
+        particle_msg.channels.append(intensity_channel)
+
+        pt = Point32()
+        pt.x = self.pose[0]
+        pt.y = self.pose[1]
+        pt.z = self.pose[2]
+        particle_msg.points.append(pt)
+        intensity_channel.values.append(1) # Was p.weight
+
+        self.prediction_publisher.publish(particle_msg)
         self.frame_id += 1
 
     @property

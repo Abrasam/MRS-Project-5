@@ -92,7 +92,7 @@ def feedback_linearized(pose, velocity, epsilon):
   #w = velocity[2]
   return u, w
 
-def get_velocity(position, target, robot_speed):
+def get_velocity(position, target, robot_speed, expected_direction=None):
 
   v = np.zeros_like(position)
   #position[0] += EPSILON*np.cos(position[2])
@@ -102,6 +102,15 @@ def get_velocity(position, target, robot_speed):
 
   # Head towards the next point
   v = (target - position)
+
+  if expected_direction != None:
+      # Compare offset to the expected_direction. Bigger difference means further off course so more adjustment needed
+      direct_direction = np.arctan2(v[1], v[0])
+      difference = direct_direction - expected_direction
+      # Move against a third of the offset?
+      new_angle = direct_direction + difference * 0.33
+      v = np.array([np.cos(new_angle), np.sin(new_angle)) # Only need 2 components?
+
   v /= np.linalg.norm(v[:2])
   v /= 10
   #v += target_vel
@@ -338,7 +347,7 @@ def run(args):
                     targets[index] %= len(robot_paths[index])
                     current_target = robot_paths[index][targets[index]]
                     #print(current_target)
-                    v = get_velocity(current_position.copy(), deepcopy(current_target), ROBOT_SPEED)
+                    v = get_velocity(current_position.copy(), deepcopy(current_target), ROBOT_SPEED, expected_direction=robot_paths[index][targets[index]-1][2])
                     #v = np.array([1, 0])
                     u, w = feedback_linearized(current_position.copy(), v, epsilon=EPSILON)
                     #u=0.5
@@ -362,7 +371,7 @@ def run(args):
             else:
                 """if index == 0:
                     print("Moving")"""
-                v = get_velocity(deepcopy(current_position), deepcopy(current_target), ROBOT_SPEED)
+                v = get_velocity(deepcopy(current_position), deepcopy(current_target), ROBOT_SPEED, expected_direction=robot_paths[index][targets[index]-1][2])
                 #v = np.array([1, 0])
                 u, w = feedback_linearized(deepcopy(current_position), v, epsilon=EPSILON)
                 #u = 0.5

@@ -1,0 +1,9 @@
+image: ./world_map.pgm
+#resolution: 0.06349
+#origin: [-4.063000, -4.063000, 0.000000]
+resolution: 0.064516
+origin: [-4.129024, -4.129024, 0.0000]
+negate: 0
+occupied_thresh: 0.65
+free_thresh: 0.196
+

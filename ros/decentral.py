@@ -28,7 +28,7 @@ def normalize(v):
 
 all_robots = []
 
-use_locpose = False
+use_locpose = True
 
 class Robot:
 
@@ -126,7 +126,9 @@ class Robot:
         # print(current_target)
         v = full_coverage.get_velocity(current_position, current_target, speed)
         # v = np.array([1, 0])
-        u, w = full_coverage.feedback_linearized(current_position.copy(), v, epsilon=epsilon)
+        # u, w = full_coverage.feedback_linearized(current_position.copy(), v, epsilon=epsilon)
+
+        self.send_linearized_move_avoiding(v[0], v[1], epsilon)
         # u=0.5
         # w=0
       else:
@@ -141,16 +143,19 @@ class Robot:
         else:
           remaining = 2 * np.pi - difference
           w = -1 * max(0.75, remaining)
+
+        self.send_move_command(u, w)
         # w = 0.2 if ((current_target[2]) - current_position[2]) > 0 and (current_target[2] - current_position[2]) < np.pi else -0.2
     else:
       # print("Moving")
       v = full_coverage.get_velocity(current_position, current_target, speed)
       # v = np.array([1, 0])
-      u, w = full_coverage.feedback_linearized(current_position, v, epsilon=epsilon)
+      # u, w = full_coverage.feedback_linearized(current_position, v, epsilon=epsilon)
+      self.send_linearized_move_avoiding(v[0], v[1], epsilon)
       # u = 0.5
       # w = 0
 
-      self.send_move_command(u, w)
+      # self.send_move_command(u, w)
 
   def send_linearized_move(self, x, y, epsilon):
     theta = self.pose()[2]

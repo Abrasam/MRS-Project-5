@@ -1,7 +1,7 @@
 <launch>
-  <!-- 
-       Default GUI to true for local Gazebo client. Allows override 
-       to set disable GUI for RoboMaker. See part0.launch. 
+  <!--
+       Default GUI to true for local Gazebo client. Allows override
+       to set disable GUI for RoboMaker. See part0.launch.
   -->
   <arg name="use_gui" default="true"/>
 
@@ -44,7 +44,7 @@
       <param name="publish_frequency" type="double" value="50.0" />
       <param name="tf_prefix" value="$(arg first_tb3)" />
     </node>
-    
+
     <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-urdf -model $(arg first_tb3) -x $(arg first_tb3_x_pos) -y $(arg first_tb3_y_pos) -z $(arg first_tb3_z_pos) -Y $(arg first_tb3_yaw) -param robot_description" />
   </group>
 

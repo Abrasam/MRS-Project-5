@@ -1,0 +1,6 @@
+<launch>
+	<arg name="mode" />
+	<arg name="map" />
+
+	<node pkg="project" type="full_coverage.py" name="full_coverage" args="--mode=$(arg mode) --map=$(arg map)" output="screen"></node>
+</launch>

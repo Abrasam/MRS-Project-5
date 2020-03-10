@@ -133,7 +133,7 @@ class GroundtruthPose(object):
 
 
 def run(args):
-  rospy.init_node('obstacle_avoidance')
+  rospy.init_node('obstacle_avoidance_temp')
   avoidance_method = globals()[args.mode]
 
   # Update control every 100 ms.

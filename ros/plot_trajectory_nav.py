@@ -7,6 +7,28 @@ import matplotlib.pylab as plt
 import Image
 
 
+def read_pgm(filename, byteorder='>'):
+    """Read PGM file."""
+    with open(filename, 'rb') as fp:
+        buf = fp.read()
+    try:
+        header, width, height, maxval = re.search(
+            b'(^P5\s(?:\s*#.*[\r\n])*'
+            b'(\d+)\s(?:\s*#.*[\r\n])*'
+            b'(\d+)\s(?:\s*#.*[\r\n])*'
+            b'(\d+)\s(?:\s*#.*[\r\n]\s)*)', buf).groups()
+    except AttributeError:
+        raise ValueError('Invalid PGM file: "{}"'.format(filename))
+    maxval = int(maxval)
+    height = int(height)
+    width = int(width)
+    img = np.frombuffer(buf,
+                        dtype='u1' if maxval < 256 else byteorder + 'u2',
+                        count=width * height,
+                        offset=len(header)).reshape((height, width))
+    return img.astype(np.float32) / 255.
+
+
 if __name__ == '__main__':
 
   fig = plt.figure()
@@ -28,7 +50,8 @@ if __name__ == '__main__':
     plt.legend()
 
 
-  img = plt.imread("small_map.png")
+  #img = plt.imread("small_map.png")
+  img = read_pgm("small_map.pgm")
   plt.imshow(img, extent=[-4, 4, -4, 4])
 
 

@@ -17,7 +17,7 @@ from copy import deepcopy
 
 # Robot motion commands:
 # http://docs.ros.org/api/geometry_msgs/html/msg/Twist.html
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Twist,Point32
 # Laser scan message:
 # http://docs.ros.org/api/sensor_msgs/html/msg/LaserScan.html
 from sensor_msgs.msg import LaserScan
@@ -174,6 +174,25 @@ class GroundtruthPose(object):
     def pose(self):
         return self._pose
 
+class LocalisationPose(object):
+    def __init__(self, name='tb3_0'):
+        rospy.Subscriber('/locpos'+name[-1], Point32, self.callback)
+        self._pose = np.array([np.nan, np.nan, np.nan], dtype=np.float32)
+        self._name = name
+
+    def callback(self, msg):
+        self._pose[0] = msg.x
+        self._pose[1] = msg.y
+        self._pose[2] = msg.z
+
+    @property
+    def ready(self):
+        return not np.isnan(self._pose[0])
+
+    @property
+    def pose(self):
+        return self._pose
+
 
 def run(args):
     rospy.init_node('full_coverage')
@@ -190,7 +209,8 @@ def run(args):
             '/' + robot + '/cmd_vel', Twist, queue_size=5))
         lasers.append(SimpleLaser(name=robot))
         # Keep track of groundtruth position for plotting purposes.
-        ground_truths.append(GroundtruthPose(name=robot))
+        #ground_truths.append(GroundtruthPose(name=robot))
+        ground_truths.append()
         pose_history.append([])
 
     # plotting values

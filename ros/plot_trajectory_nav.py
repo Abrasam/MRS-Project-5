@@ -5,7 +5,7 @@ from __future__ import print_function
 import numpy as np
 import matplotlib.pylab as plt
 import Image
-
+import re
 
 def read_pgm(filename, byteorder='>'):
     """Read PGM file."""

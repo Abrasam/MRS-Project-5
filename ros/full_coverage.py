@@ -109,7 +109,7 @@ def get_velocity(position, target, robot_speed, expected_direction=None):
       difference = direct_direction - expected_direction
       # Move against a third of the offset?
       new_angle = direct_direction + difference * 0.33
-      v = np.array([np.cos(new_angle), np.sin(new_angle)) # Only need 2 components?
+      v = np.array([np.cos(new_angle), np.sin(new_angle)]) # Only need 2 components?
 
   v /= np.linalg.norm(v[:2])
   v /= 10
@@ -308,7 +308,7 @@ def run(args):
             # Transposing location
             robot_locations = [(i.pose[0] , i.pose[1]) for i in estimated_positions]
             print(robot_locations)
-            robot_paths, occupancy_grid, assignments = divide(args, robot_locations[:NUMBER_ROBOTS], ROBOT_SPEED)
+            robot_paths = divide(args, robot_locations[:NUMBER_ROBOTS], ROBOT_SPEED)
             if robot_paths == False:
                 time.sleep(2)
                 start_time = time.time()

@@ -14,6 +14,7 @@ from divide_areas import divide
 import time
 
 from copy import deepcopy
+import os
 
 # Robot motion commands:
 # http://docs.ros.org/api/geometry_msgs/html/msg/Twist.html
@@ -210,13 +211,13 @@ def run(args):
         lasers.append(SimpleLaser(name=robot))
         # Keep track of groundtruth position for plotting purposes.
         #ground_truths.append(GroundtruthPose(name=robot))
-        ground_truths.append()
+        ground_truths.append(LocalisationPose(name=robot))
         pose_history.append([])
 
     # plotting values
     times = []
     for i in range(NUMBER_ROBOTS):
-      with open('/tmp/gazebo_robot_tb3_' + str(i) + '.txt', 'w'):
+      with open('/tmp/gazebo_robot_nav_tb3_' + str(i) + '.txt', 'w'):
         pass
     counter = 0
 
@@ -233,7 +234,10 @@ def run(args):
             start_timer = time.time()
             continue
 
-        if time.time() - start_timer < 2: # Run around for 10 seconds
+        #print(os.getcwd())
+        #if time.time() - start_timer < 2: # Run around for 10 seconds
+
+        while not os.path.exists("/go"):
             for index in range(NUMBER_ROBOTS):
                 robot = "tb3_%s" % index
                 u, w = avoidance_method(*lasers[index].measurements)
@@ -346,7 +350,7 @@ def run(args):
 
             pose_history[index].append(ground_truths[index].pose)
             if len(pose_history[index]) % 10:
-              with open('/tmp/gazebo_robot_tb3_' + str(index) + '.txt', 'a') as fp:
+              with open('/tmp/gazebo_robot_nav_tb3_' + str(index) + '.txt', 'a') as fp:
                 fp.write('\n'.join(','.join(str(v) for v in p) for p in pose_history[index]) + '\n')
                 pose_history[index] = []
 

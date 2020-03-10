@@ -186,7 +186,7 @@ class LocalisationPose(object):
     def callback(self, msg):
         self._pose[0] = msg.x
         self._pose[1] = msg.y
-        self._pose[2] = msg.z
+        self._pose[2] = msg.z - np.pi # Possible source of bug
 
     def apply_motion_model(self, u, w, dt):
         vel_x = u * np.cos(self._pose[2])

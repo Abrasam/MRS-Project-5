@@ -448,7 +448,7 @@ def run(args):
     with open('/tmp/gazebo_robot_tb3_' + str(i) + '.txt', 'w'):
       pass
 
-  num_particles = 200
+  num_particles = 50
   particles = [[Particle() for _ in range(num_particles)] for i in range(NUM_ROBOTS)]
 
   frame_id = 0

@@ -209,8 +209,8 @@ def run(args):
             '/' + robot + '/cmd_vel', Twist, queue_size=5))
         lasers.append(SimpleLaser(name=robot))
         # Keep track of groundtruth position for plotting purposes.
-        #ground_truths.append(GroundtruthPose(name=robot))
-        ground_truths.append()
+        ground_truths.append(GroundtruthPose(name=robot))
+        #ground_truths.append(LocalisationPose(name=robot))
         pose_history.append([])
 
     # plotting values

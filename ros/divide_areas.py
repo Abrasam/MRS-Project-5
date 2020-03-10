@@ -1126,7 +1126,7 @@ def divide(args, robot_locations, robot_speed):
         adjusted_edges_used[(scaling*a+occupancy_grid.resolution, scaling*b+occupancy_grid.resolution)] = edges_used[key]
 
     draw_world(original_occupancy_grid, robot_locations, assignments, lines_plot=adjusted_edges_used, line_multiplier=scaling)
-    return robot_paths
+    return robot_paths, occupancy_grid, assignments
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Provides routes to each robot to give full coverage.')

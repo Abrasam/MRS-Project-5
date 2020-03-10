@@ -299,7 +299,7 @@ def run(args):
             # Transposing location
             robot_locations = [(i.pose[0] , i.pose[1]) for i in estimated_positions]
             print(robot_locations)
-            robot_paths = divide(args, robot_locations[:NUMBER_ROBOTS], ROBOT_SPEED)
+            robot_paths, occupancy_grid, assignments = divide(args, robot_locations[:NUMBER_ROBOTS], ROBOT_SPEED)
             if robot_paths == False:
                 time.sleep(2)
                 start_time = time.time()

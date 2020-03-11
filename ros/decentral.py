@@ -343,6 +343,15 @@ class Robot:
     big_target = np.array([small_target[0] * self.scaling, small_target[1] * self.scaling], dtype=np.float32)
     target_pos = self.original_grid.get_position(big_target[0], big_target[1])
 
+    # Target as close as possible
+    for i in range(0, 20):
+      other_target = region_trade.random_owned_pos(self.owned)
+      o_big = self.original_grid.get_position(other_target[0] * self.scaling, other_target[1] * self.scaling)
+
+      if np.linalg.norm(o_big - self.position_array()) < np.linalg.norm(target_pos - self.position_array()):
+        target_pos = o_big
+
+
     self.rrt_target(target_pos)
 
   # Meet all the robots in the array, except if they have the same id
@@ -424,11 +433,18 @@ def run(args):
   for_sale[occupancy_grid.values == 0] = 1
 
   robots = []
-  for i in range(0, 3):
+  NUMBER_ROBOTS = 3
+  for i in range(0, NUMBER_ROBOTS):
     new_robot = Robot(i, "tb3_" + str(i), original_occupancy_grid, occupancy_grid, scaling, np.copy(for_sale))
     robots.append(new_robot)
 
+  for i in range(NUMBER_ROBOTS):
+    with open('/tmp/gazebo_robot_nav_tb3_' + str(i) + '.txt', 'w'):
+      pass
+
   all_robots = robots
+
+  count = 0
 
   while not rospy.is_shutdown():
     if any(not robot.check_ready() for robot in robots):
@@ -439,6 +455,14 @@ def run(args):
       # robot.move_rule_based()
       robot.update_navigation()
       robot.perform_meetings(robots, 2.0)
+
+    count += 1
+    if count == 1000:
+      rmap = np.zeros_like(occupancy_grid.values)
+      rmap += 1 * robots[0].owned
+      rmap += 2 * robots[1].owned
+      rmap += 4 * robots[2].owned
+      region_trade.draw_grid(rmap)
 
     rate_limiter.sleep()
 

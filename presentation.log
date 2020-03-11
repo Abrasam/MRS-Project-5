@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/W32TeX) (preloaded format=pdflatex 2020.1.21)  11 MAR 2020 15:24
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/W32TeX) (preloaded format=pdflatex 2020.1.21)  11 MAR 2020 15:25
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -912,119 +912,63 @@ Package pdftex.def Info: figure_l1.png  used on input line 79.
 ] [29
 
 ]
+<DARPImages/World_with_robots.png, id=771, 462.528pt x 346.896pt>
+File: DARPImages/World_with_robots.png Graphic file (type png)
+<use DARPImages/World_with_robots.png>
+Package pdftex.def Info: DARPImages/World_with_robots.png  used on input line 1
+21.
+(pdftex.def)             Requested size: 307.28987pt x 230.4765pt.
+ [30
 
-! LaTeX Error: File `DARPImages/World_with_robots' not found.
+ <./DARPImages/World_with_robots.png>]
+<DARPImages/0.png, id=798, 462.528pt x 346.896pt>
+File: DARPImages/0.png Graphic file (type png)
+<use DARPImages/0.png>
+Package pdftex.def Info: DARPImages/0.png  used on input line 161.
+(pdftex.def)             Requested size: 92.1879pt x 69.13977pt.
+<DARPImages/10.png, id=799, 462.528pt x 346.896pt>
+File: DARPImages/10.png Graphic file (type png)
+<use DARPImages/10.png>
+Package pdftex.def Info: DARPImages/10.png  used on input line 161.
+(pdftex.def)             Requested size: 92.1879pt x 69.13977pt.
+<DARPImages/50.png, id=800, 462.528pt x 346.896pt>
+File: DARPImages/50.png Graphic file (type png)
+<use DARPImages/50.png>
+Package pdftex.def Info: DARPImages/50.png  used on input line 161.
+(pdftex.def)             Requested size: 92.1879pt x 69.13977pt.
+<DARPImages/100.png, id=801, 462.528pt x 346.896pt>
+File: DARPImages/100.png Graphic file (type png)
+<use DARPImages/100.png>
+Package pdftex.def Info: DARPImages/100.png  used on input line 161.
+(pdftex.def)             Requested size: 92.1879pt x 69.13977pt.
+<DARPImages/200.png, id=802, 462.528pt x 346.896pt>
+File: DARPImages/200.png Graphic file (type png)
+<use DARPImages/200.png>
+Package pdftex.def Info: DARPImages/200.png  used on input line 161.
+(pdftex.def)             Requested size: 92.1879pt x 69.13977pt.
+<DARPImages/346.png, id=803, 462.528pt x 346.896pt>
+File: DARPImages/346.png Graphic file (type png)
+<use DARPImages/346.png>
+Package pdftex.def Info: DARPImages/346.png  used on input line 161.
+(pdftex.def)             Requested size: 92.1879pt x 69.13977pt.
 
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.121 	\end{frame}
-                  
-I could not locate the file with any of these extensions:
-.pdf,.png,.jpg,.mps,.jpeg,.jbig2,.jb2,.PDF,.PNG,.JPG,.JPEG,.JBIG2,.JB2,.eps
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
-
-[30
-
-]
-
-! LaTeX Error: File `DARPImages/0' not found.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.161 	\end{frame}
-                  
-I could not locate the file with any of these extensions:
-.pdf,.png,.jpg,.mps,.jpeg,.jbig2,.jb2,.PDF,.PNG,.JPG,.JPEG,.JBIG2,.JB2,.eps
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
-
-
-! LaTeX Error: File `DARPImages/10' not found.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.161 	\end{frame}
-                  
-I could not locate the file with any of these extensions:
-.pdf,.png,.jpg,.mps,.jpeg,.jbig2,.jb2,.PDF,.PNG,.JPG,.JPEG,.JBIG2,.JB2,.eps
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
-
-
-! LaTeX Error: File `DARPImages/50' not found.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.161 	\end{frame}
-                  
-I could not locate the file with any of these extensions:
-.pdf,.png,.jpg,.mps,.jpeg,.jbig2,.jb2,.PDF,.PNG,.JPG,.JPEG,.JBIG2,.JB2,.eps
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
-
-
-! LaTeX Error: File `DARPImages/100' not found.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.161 	\end{frame}
-                  
-I could not locate the file with any of these extensions:
-.pdf,.png,.jpg,.mps,.jpeg,.jbig2,.jb2,.PDF,.PNG,.JPG,.JPEG,.JBIG2,.JB2,.eps
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
-
-
-! LaTeX Error: File `DARPImages/200' not found.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.161 	\end{frame}
-                  
-I could not locate the file with any of these extensions:
-.pdf,.png,.jpg,.mps,.jpeg,.jbig2,.jb2,.PDF,.PNG,.JPG,.JPEG,.JBIG2,.JB2,.eps
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
-
-
-! LaTeX Error: File `DARPImages/346' not found.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.161 	\end{frame}
-                  
-I could not locate the file with any of these extensions:
-.pdf,.png,.jpg,.mps,.jpeg,.jbig2,.jb2,.PDF,.PNG,.JPG,.JPEG,.JBIG2,.JB2,.eps
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
+Overfull \vbox (13.43695pt too high) detected at line 161
+ []
 
 [31
 
-] [32
+ <./DARPImages/0.png> <./DARPImages/10.png> <./DARPImages/50.png> <./DARPImages
+/100.png> <./DARPImages/200.png> <./DARPImages/346.png>] [32
 
 ] [33
 
 ] [34
 
-] [35
+]
+[35
 
 ]
-<SpanningTreeExample.png, id=922, 690.07813pt x 690.58pt>
+<SpanningTreeExample.png, id=938, 690.07813pt x 690.58pt>
 File: SpanningTreeExample.png Graphic file (type png)
 <use SpanningTreeExample.png>
 Package pdftex.def Info: SpanningTreeExample.png  used on input line 174.
@@ -1034,7 +978,7 @@ Package pdftex.def Info: SpanningTreeExample.png  used on input line 174.
  <./SpanningTreeExample.png>] [37
 
 ]
-<30min_gt_simple.png, id=975, 578.16pt x 433.62pt>
+<30min_gt_simple.png, id=991, 578.16pt x 433.62pt>
 File: 30min_gt_simple.png Graphic file (type png)
 <use 30min_gt_simple.png>
 Package pdftex.def Info: 30min_gt_simple.png  used on input line 186.
@@ -1042,24 +986,25 @@ Package pdftex.def Info: 30min_gt_simple.png  used on input line 186.
  [38
 
  <./30min_gt_simple.png>]
-<30min_loc_simple.png, id=1003, 578.16pt x 433.62pt>
+<30min_loc_simple.png, id=1019, 578.16pt x 433.62pt>
 File: 30min_loc_simple.png Graphic file (type png)
 <use 30min_loc_simple.png>
 Package pdftex.def Info: 30min_loc_simple.png  used on input line 191.
 (pdftex.def)             Requested size: 307.28987pt x 230.46591pt.
- [39
+
+[39
 
  <./30min_loc_simple.png>] [40
 
 ] [41
 
 ]
-<rt_before.png, id=1080, 642.4pt x 481.8pt>
+<rt_before.png, id=1096, 642.4pt x 481.8pt>
 File: rt_before.png Graphic file (type png)
 <use rt_before.png>
 Package pdftex.def Info: rt_before.png  used on input line 222.
 (pdftex.def)             Requested size: 153.64493pt x 115.23001pt.
-<rt_after.png, id=1081, 642.4pt x 481.8pt>
+<rt_after.png, id=1097, 642.4pt x 481.8pt>
 File: rt_after.png Graphic file (type png)
 <use rt_after.png>
 Package pdftex.def Info: rt_after.png  used on input line 222.
@@ -1073,12 +1018,12 @@ Package pdftex.def Info: rt_after.png  used on input line 222.
 ] [45
 
 ]
-<dec2.png, id=1184, 251.94125pt x 247.92625pt>
+<dec2.png, id=1200, 251.94125pt x 247.92625pt>
 File: dec2.png Graphic file (type png)
 <use dec2.png>
 Package pdftex.def Info: dec2.png  used on input line 274.
 (pdftex.def)             Requested size: 153.64493pt x 151.19696pt.
-<owned_regions_2.png, id=1185, 62.8749pt x 64.3203pt>
+<owned_regions_2.png, id=1201, 62.8749pt x 64.3203pt>
 File: owned_regions_2.png Graphic file (type png)
 <use owned_regions_2.png>
 Package pdftex.def Info: owned_regions_2.png  used on input line 274.
@@ -1086,17 +1031,17 @@ Package pdftex.def Info: owned_regions_2.png  used on input line 274.
  [46
 
  <./dec2.png> <./owned_regions_2.png>]
-<dec_with_lo.png, id=1213, 642.4pt x 481.8pt>
+<dec_with_lo.png, id=1228, 642.4pt x 481.8pt>
 File: dec_with_lo.png Graphic file (type png)
 <use dec_with_lo.png>
 Package pdftex.def Info: dec_with_lo.png  used on input line 284.
 (pdftex.def)             Requested size: 153.64493pt x 115.23001pt.
-<or5.png, id=1214, 72.27pt x 68.6565pt>
+<or5.png, id=1229, 72.27pt x 68.6565pt>
 File: or5.png Graphic file (type png)
 <use or5.png>
 Package pdftex.def Info: or5.png  used on input line 284.
 (pdftex.def)             Requested size: 153.64493pt x 145.97008pt.
- [47
+[47
 
  <./dec_with_lo.png (PNG copy)> <./or5.png>]
 \tf@nav=\write6
@@ -1110,22 +1055,17 @@ Package pdftex.def Info: or5.png  used on input line 284.
 
 Package atveryend Info: Empty hook `BeforeClearDocument' on input line 285.
 Package atveryend Info: Empty hook `AfterLastShipout' on input line 285.
-
-(./presentation.aux)
+ (./presentation.aux)
 Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 285.
 Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 285.
 Package rerunfilecheck Info: File `presentation.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
-
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
  ) 
 Here is how much of TeX's memory you used:
- 17925 strings out of 492162
- 337355 string characters out of 6129062
- 411020 words of memory out of 5000000
- 21730 multiletter control sequences out of 15000+600000
+ 17877 strings out of 492162
+ 336492 string characters out of 6129062
+ 411044 words of memory out of 5000000
+ 21694 multiletter control sequences out of 15000+600000
  14952 words of font info for 55 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  58i,14n,57p,779b,556s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -1140,10 +1080,10 @@ i8.pfb><c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb><c
 :/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb><c:/texlive/
 2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb><c:/texlive/2019/texm
 f-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb>
-Output written on presentation.pdf (47 pages, 835251 bytes).
+Output written on presentation.pdf (47 pages, 971234 bytes).
 PDF statistics:
- 1304 PDF objects out of 1440 (max. 8388607)
+ 1318 PDF objects out of 1440 (max. 8388607)
  1206 compressed objects within 13 object streams
  96 named destinations out of 1000 (max. 500000)
- 98 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 133 words of extra memory for PDF output out of 10000 (max. 10000000)
 

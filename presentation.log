@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/W32TeX) (preloaded format=pdflatex 2020.1.21)  11 MAR 2020 14:00
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/W32TeX) (preloaded format=pdflatex 2020.1.21)  11 MAR 2020 15:21
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -882,7 +882,56 @@ Package pdftex.def Info: figure_l1.png  used on input line 79.
 
  <./figure_l1.png>] [15
 
+] [16
+
+] [17
+
 ]
+<rt_before.png, id=464, 642.4pt x 481.8pt>
+File: rt_before.png Graphic file (type png)
+<use rt_before.png>
+Package pdftex.def Info: rt_before.png  used on input line 116.
+(pdftex.def)             Requested size: 153.64493pt x 115.23001pt.
+<rt_after.png, id=465, 642.4pt x 481.8pt>
+File: rt_after.png Graphic file (type png)
+<use rt_after.png>
+Package pdftex.def Info: rt_after.png  used on input line 116.
+(pdftex.def)             Requested size: 153.64493pt x 115.23001pt.
+ [18
+
+ <./rt_before.png (PNG copy)> <./rt_after.png (PNG copy)>] [19
+
+] [20
+
+] [21
+
+]
+<dec2.png, id=568, 251.94125pt x 247.92625pt>
+File: dec2.png Graphic file (type png)
+<use dec2.png>
+Package pdftex.def Info: dec2.png  used on input line 168.
+(pdftex.def)             Requested size: 153.64493pt x 151.19696pt.
+<owned_regions_2.png, id=569, 62.8749pt x 64.3203pt>
+File: owned_regions_2.png Graphic file (type png)
+<use owned_regions_2.png>
+Package pdftex.def Info: owned_regions_2.png  used on input line 168.
+(pdftex.def)             Requested size: 153.64493pt x 157.21509pt.
+ [22
+
+ <./dec2.png> <./owned_regions_2.png>]
+<dec_with_lo.png, id=596, 642.4pt x 481.8pt>
+File: dec_with_lo.png Graphic file (type png)
+<use dec_with_lo.png>
+Package pdftex.def Info: dec_with_lo.png  used on input line 178.
+(pdftex.def)             Requested size: 153.64493pt x 115.23001pt.
+<or5.png, id=597, 72.27pt x 68.6565pt>
+File: or5.png Graphic file (type png)
+<use or5.png>
+Package pdftex.def Info: or5.png  used on input line 178.
+(pdftex.def)             Requested size: 153.64493pt x 145.97008pt.
+ [23
+
+ <./dec_with_lo.png (PNG copy)> <./or5.png>]
 \tf@nav=\write6
 \openout6 = `presentation.nav'.
 
@@ -892,20 +941,20 @@ Package pdftex.def Info: figure_l1.png  used on input line 79.
 \tf@snm=\write8
 \openout8 = `presentation.snm'.
 
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 84.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 84.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 179.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 179.
  (./presentation.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 84.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 84.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 179.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 179.
 Package rerunfilecheck Info: File `presentation.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
- 17595 strings out of 492162
- 331824 string characters out of 6129062
+ 17690 strings out of 492162
+ 333594 string characters out of 6129062
  411020 words of memory out of 5000000
- 21493 multiletter control sequences out of 15000+600000
- 11158 words of font info for 41 fonts, out of 8000000 for 9000
+ 21564 multiletter control sequences out of 15000+600000
+ 14952 words of font info for 55 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  58i,14n,57p,779b,556s stack positions out of 5000i,500n,10000p,200000b,80000s
 <c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb><c:/tex
@@ -919,10 +968,10 @@ i8.pfb><c:/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb><c
 :/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb><c:/texlive/
 2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb><c:/texlive/2019/texm
 f-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb>
-Output written on presentation.pdf (15 pages, 216332 bytes).
+Output written on presentation.pdf (23 pages, 471436 bytes).
 PDF statistics:
- 461 PDF objects out of 1000 (max. 8388607)
- 417 compressed objects within 5 object streams
- 31 named destinations out of 1000 (max. 500000)
- 53 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 676 PDF objects out of 1000 (max. 8388607)
+ 614 compressed objects within 7 object streams
+ 47 named destinations out of 1000 (max. 500000)
+ 83 words of extra memory for PDF output out of 10000 (max. 10000000)
 

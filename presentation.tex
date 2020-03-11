@@ -81,4 +81,99 @@
 		\frametitle{Demo}
 		\url{https://drive.google.com/file/d/1VfTZwqM-bqTKb0AGtHgcXKm1kq8-nVVY/view?usp=sharing}
 	\end{frame}
+	
+	%LUKE
+	
+	\begin{frame}
+		\frametitle{Decentralized Coverage}
+		\begin{itemize}
+			\item Region Trading
+			\item Navigation within region
+		\end{itemize}
+	\end{frame}
+	
+	\begin{frame}
+		\frametitle{Region Trading}
+		\begin{itemize}
+			\item Each robot starts out believing that it `owns' the whole world
+			\item When robots meet, they trade individual grid cells to try and balance the amount they both have
+			\item Converges after about 10-20 random robot pairing trades.
+		\end{itemize}
+		
+	\end{frame}
+	
+	\begin{frame}
+		\frametitle{Region Trading}
+		
+		\begin{columns}
+			\column{0.5\textwidth}
+			After 3 trades - some area still multiply owned
+			\includegraphics[width=\columnwidth]{rt_before.png}
+			\column{0.5\textwidth}
+			After 10 trades - regions are separate
+			\includegraphics[width=\columnwidth]{rt_after.png}
+		\end{columns}
+	\end{frame}
+	
+	\begin{frame}
+		\frametitle{Region Trading}
+		\begin{itemize}
+			\item Robots start by buying their positions
+			\item Then take turns buying cells using BFS
+			\item Cells already purchased by one robot can still be purchased by the other, if it has run out of unowned cells to buy
+			\begin{itemize}
+				\item Simple strategy used to avoid one robot accidentally splitting the other's region in two by doing this
+			\end{itemize}
+		\end{itemize}
+	\end{frame}
+	
+	
+	
+	\begin{frame}
+		\frametitle{Navigation within region}
+		
+		\begin{itemize}
+			\item Two approaches tried
+			\begin{itemize}
+				\item Originally used RRT to each position - RRT leads to pathing everywhere
+				\item Luke's strategy: Following around the MST of the region
+			\end{itemize}
+			\item The robots will always use RRT anyway to get back inside their region should they find themselves outside - hence paths outside of their own regions
+		\end{itemize}
+		
+	\end{frame}
+	
+	\begin{frame}
+		\frametitle{Collision avoidance}
+		
+		\begin{itemize}
+			\item Phase 1 - modify speed / bearing to avoid potential collision
+			\begin{itemize}
+				\item Robots moving towards each other will bear away from each other
+				\item Rotate away from line between the two robots
+			\end{itemize}
+			\item Phase 2 - cancel paths and switch to rule based movement away from obstacle / other robot
+		\end{itemize}
+	\end{frame}
+	
+	\begin{frame}
+		\frametitle{Following MST}
+		\begin{columns}
+			\column{0.5\textwidth}
+			\includegraphics[width=\columnwidth]{dec2.png}
+			\column{0.5\textwidth}
+			\includegraphics[width=\columnwidth]{owned_regions_2.png}
+		\end{columns}
+		
+	\end{frame}
+	
+	\begin{frame}
+		\frametitle{With Localization}
+		\begin{columns}
+			\column{0.5\textwidth}
+			\includegraphics[width=\columnwidth]{dec_with_lo.png}
+			\column{0.5\textwidth}
+			\includegraphics[width=\columnwidth]{or5.png}
+		\end{columns}
+	\end{frame}
 \end{document}

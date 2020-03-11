@@ -89,7 +89,6 @@
 	\end{frame}
 	\begin{frame}
 		\frametitle{DARP}
-		Divide Areas based on initial Robot Position
 		Divide world, $\mathcal{L}$, into regions, $L_i$, such that:
 		\begin{itemize}
 			\item<2-> $L_i \cap L_j = \phi, \forall i, j  \in 1..n_r, i \neq j$
@@ -171,8 +170,22 @@
 	\end{frame}
 	\begin{frame}
 		\frametitle{Path Following}
-		
+		\begin{itemize}
+			\item Extract the points on the path where a change of direction is required.
+			\item Travel to each of these points in turn in a straight line, then rotate to face the next direction of travel.
+		\end{itemize}
 	\end{frame}
+	\begin{frame}
+		\frametitle{Path Following - Ground Truth}
+		\centering
+		\includegraphics[width=\linewidth]{30min_gt_simple}
+	\end{frame}
+	\begin{frame}
+		\frametitle{Path Following - Localisation}
+		\centering
+		\includegraphics[width=\linewidth]{30min_loc_simple}
+	\end{frame}
+
 
 
 

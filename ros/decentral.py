@@ -20,6 +20,8 @@ from gazebo_msgs.msg import ModelStates
 from tf.transformations import euler_from_quaternion
 
 
+loop_time = 0
+
 def normalize(v):
   n = np.linalg.norm(v)
   if n < 1e-2:
@@ -109,6 +111,8 @@ class Robot:
     vel_msg.angular.z = w
     self.publisher.publish(vel_msg)
 
+    self.locpose.apply_motion_model(u, w, loop_time)
+
   def create_region_poses(self):
     if rrt_only:
       return
@@ -169,8 +173,8 @@ class Robot:
     distance = ((current_target[0] - current_position[0]) ** 2
                 + (current_target[1] - current_position[1]) ** 2) ** 0.5
 
-    # if distance < 2 * divide_areas.ROBOT_RADIUS or self.route_arrived:
-    if intersect_line_circle(self.old_position_array(), self.position_array(), ct_pos, 2 * divide_areas.ROBOT_RADIUS) or self.route_arrived:
+    if distance < 2 * divide_areas.ROBOT_RADIUS or self.route_arrived:
+    # if intersect_line_circle(self.old_position_array(), self.position_array(), ct_pos, 2 * divide_areas.ROBOT_RADIUS) or self.route_arrived:
       # Keep moving for a bit
       self.route_arrived = True
       if np.absolute((current_target[2]) - current_position[2]) < 0.20:  # Within 3 degrees
@@ -180,7 +184,7 @@ class Robot:
         self.route_target_index %= len(self.route_poses)
         current_target = self.route_poses[self.route_target_index]
         # print(current_target)
-        v = full_coverage.get_velocity(current_position, current_target, speed)
+        v = full_coverage.get_velocity(current_position, current_target, speed, expected_direction=self.route_poses[self.route_target_index -1][2])
         # v = np.array([1, 0])
         # u, w = full_coverage.feedback_linearized(current_position.copy(), v, epsilon=epsilon)
 
@@ -195,16 +199,18 @@ class Robot:
 
         if difference < np.pi:
           # Difference heading to 0
-          w = max(0.75, difference)
+          # w = max(0.75, difference)
+          w = 0.25
         else:
           remaining = 2 * np.pi - difference
-          w = -1 * max(0.75, remaining)
+          # w = -1 * max(0.75, remaining)
+          w = -0.25
 
         self.send_move_avoiding(u, w)
         # w = 0.2 if ((current_target[2]) - current_position[2]) > 0 and (current_target[2] - current_position[2]) < np.pi else -0.2
     else:
       # print("Moving")
-      v = full_coverage.get_velocity(current_position, current_target, speed)
+      v = full_coverage.get_velocity(current_position, current_target, speed, expected_direction=self.route_poses[self.route_target_index - 1][2])
       # v = np.array([1, 0])
       # u, w = full_coverage.feedback_linearized(current_position, v, epsilon=epsilon)
       self.send_linearized_move_avoiding(v[0], v[1], epsilon)
@@ -276,10 +282,10 @@ class Robot:
 
   def update_navigation(self):
 
-    # if not rrt_only and self.route_poses is not None:
-    ##  self.move_on_region_route(0.15, 0.2)
-    if len(self.path) > 3:
-      self.move_on_path(0.15, 0.2)
+    if not rrt_only and self.route_poses is not None:
+      self.move_on_region_route(0.15, full_coverage.EPSILON)
+    elif len(self.path) > 3:
+      self.move_on_path(0.15, full_coverage.EPSILON)
     else:
       if not self.create_region_poses():
         self.target_random_in_region()
@@ -422,10 +428,12 @@ class Robot:
 
 def run(args):
   global all_robots
+  global loop_time
 
   rospy.init_node('decentral')
 
   rate_limiter = rospy.Rate(100)
+  loop_time = 1.0 / 100
 
   original_occupancy_grid, occupancy_grid, scaling = divide_areas.create_occupancy_grid(args)
 

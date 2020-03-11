@@ -33,7 +33,7 @@
 	\begin{frame}
 		\frametitle{LIDAR}
 		\[
-		w_i = \sum_{s_{j} \in \mathrm{Sensors}}\Phi(R(i,j), s_{ij}, \sigma^2)
+		w_i = \prod_{s_{j} \in \mathrm{Sensors}}\Phi(R(i,j), s_{ij}, \sigma^2)
 		\]
 		\begin{itemize}
 			\item $w_i$ = LIDAR weight of particle $i$
@@ -45,7 +45,7 @@
 	\begin{frame}
 		\frametitle{Range \& Bearing}
 		\[
-		\bar{w_i} = \sum_{r_j \in N_i}\sum_{p_k \in r_j}\Phi\left(
+		\bar{w_i} = \prod_{r_j \in N_i}\sum_{p_k \in r_j}\Phi\left(
 		\begin{bmatrix}
 		D_i(p_k)\\
 		\Theta_i(p_k)
@@ -55,7 +55,7 @@
 		\theta_j
 		\end{bmatrix},
 		\xi
-		\right)
+		\right) \cdot w_{p_k}
 		\]
 		\begin{itemize}
 			\item $\bar{w_i}$ range \& bearing weight of particle $i$
@@ -64,6 +64,7 @@
 			\item $\theta_j$ = received bearing of this robot from $r_j$
 			\item $D_i(p_k)$  = distance between the particle $i$ on this robot and the particle $p_k$ from the other robot
 			\item $\Theta_i(p_k)$ = bearing between the particle $i$ and the particle $p_k$ on the other robot
+			\item $w_{p_k}$ = weight of particle $k$
 			\item $\xi$ = covariance matrix
 		\end{itemize}
 		Normalising factors omitted.

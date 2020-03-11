@@ -76,4 +76,39 @@
 		\frametitle{Performance With Enhancement}
 		\includegraphics[width=\columnwidth]{figure_l1.png}
 	\end{frame}
+	\begin{frame}
+		\frametitle{Centralised Approach to World Coverage}
+		\pause
+		\begin {itemize}
+			\item<2-> Divide the world into equal regions.
+			\item<3-> Plan a path for each robot within its region.
+			\item<4-> Follow the paths.	
+		\end {itemize}
+	\end{frame}
+	\begin{frame}
+		\frametitle{DARP}
+		Divide Areas based on initial Robot Position
+		Divide world, $\mathcal{L}$, into regions, $L_i$, such that:
+		\begin{itemize}
+			\item<2-> $L_i \cap L_j = \phi, \forall i, j  \in 1..n_r, i \neq j$
+			\item<3-> $L_1 \cup L_2 \cup \cdots \cup L_{n_r} = \mathcal{L}$
+			\item<4-> $|L_1| \approx |L_2| \cdots \approx |L_{n_r}|$
+			\item<5-> $L_i$ is connected $\forall i\in 1..n_r$
+			\item<6-> $x_i(t_0) \in L_i$ (each robot starts in its own region)
+		\end{itemize}
+	\end{frame}
+
+	\begin{frame}
+		\frametitle{DARP}
+		The algorithm:
+		\begin{itemize}
+			\item<2-> For each robot, weight each cell in the world based on distance to the robot.
+			\item<3-> Assign each cell to the robot that gives it the smallest weight.
+			\item<4-> Iteratively adjust weights to balance the sizes of the regions and ensure all regions are single connected components.
+		\end{itemize}
+	
+	\end{frame}
+
+
+
 \end{document}

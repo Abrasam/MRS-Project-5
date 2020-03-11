@@ -179,10 +179,12 @@ def draw_world(occupancy_grid, robot_locations, assignments, lines_plot={}, pose
                ]
 
     for (i, j), v in np.ndenumerate(assignments):
+        if i == 1:
+            x=1
         pos = occupancy_grid.get_position(i, j)
         from_origin = pos - occupancy_grid.origin
         position = occupancy_grid.origin + line_multiplier*from_origin
-        if occupancy_grid.is_free(position):
+        if occupancy_grid.is_free_by_index(i, j):
             if v == 0:
                 continue
             rectangle = plt.Rectangle(
@@ -386,8 +388,8 @@ def divide_grid(occupancy_grid, robots):
         # print()
         weight_to_change += 1
         weight_to_change %= len(robots)
-        if iter % 1000 == 0:
-            #draw_world(occupancy_grid, robot_locations, assignments)
+        if iter % 1 in [1, 5, 10, 25, 50, 100]:
+            draw_world(occupancy_grid, robots, assignments)
             pass
 
     return assignments
@@ -921,7 +923,7 @@ def create_occupancy_grid(args):
     occupancy_grid[img > .9] = FREE
 
     # Expand the walls so that the robots have more clearance
-    for _ in range(2):
+    for _ in range(0):
         expanded_occupancy_grid = occupancy_grid.copy()
         for i in range(occupancy_grid.shape[0]):
             for j in range(occupancy_grid.shape[1]):
@@ -948,7 +950,7 @@ def create_occupancy_grid(args):
 
     # Shrink occupancy grid - make the minimum cell size 2*robot_width so that the robot can go forwards and backwards along it.
     # Add
-    square_edge_size = np.array([ROBOT_RADIUS * 4.5, ROBOT_RADIUS * 4.5])
+    square_edge_size = np.array([ROBOT_RADIUS * 4, ROBOT_RADIUS * 4])
     square_edge_size /= occupancy_grid.resolution
     adjusted_edge_size = (occupancy_grid.values.shape //
                           square_edge_size).astype(np.int)
@@ -1136,7 +1138,8 @@ if __name__ == "__main__":
     """f = create_route([1, 2, 3, 4, 1], 10)
     for i in range(0, 10):
         print(f(i))"""
-    #divide(args, [(1.936162, 3.2647955), (3.8319607, 1.4526322), (-0.82950312, -1.8517277)], 450)
+    robot_locations = [(-3.5, -3.5), (-3, -2.5), (-2.8, -2.8), (-1.3, -1)]
+    divide(args, robot_locations, 450)
     """try:
         run(args)
     except rospy.ROSInterruptException:

@@ -102,12 +102,11 @@ def get_velocity(position, target, robot_speed, expected_direction=None):
   # position[1] += EPSILON*np.sin(position[2])
   #
   # target_vel = np.array([robot_speed*np.cos(target[2]), robot_speed*np.sin(target[2]), 0])
-
   # Head towards the next point
   v = (target - position)
-  print(v)
-  v /= np.linalg.norm(v[:2])
-  if expected_direction != None:
+  #print(v)
+
+  """if expected_direction != None:
       # Compare offset to the expected_direction. Bigger difference means further off course so more adjustment needed
       direct_direction = np.arctan2(v[1], v[0])
       difference = direct_direction - expected_direction
@@ -115,10 +114,10 @@ def get_velocity(position, target, robot_speed, expected_direction=None):
       new_angle = direct_direction + difference * 0.33
       v = np.array([np.cos(new_angle), np.sin(new_angle)])  # Only need 2 components?
       print(difference)
-  print(v)
+  print(v)"""
 
-
-  v /= 10
+  v /= np.linalg.norm(v[:2])
+  v /= 7
   # v += target_vel
   return v
 
@@ -279,9 +278,9 @@ def run(args):
                 vel_msg.linear.x = u
                 vel_msg.angular.z = w
                 publishers[index].publish(vel_msg)
-                if index == 0:
+                """if index == 0:
                     print(ground_truths[index].pose,
-                          estimated_positions[index].pose)
+                          estimated_positions[index].pose)"""
                 estimated_positions[index].apply_motion_model(u, w, loop_time)
 
                 """# Log groundtruth positions in /tmp/gazebo_exercise.txt
@@ -343,7 +342,7 @@ def run(args):
             distance = ((current_target[0] - current_position[0]) ** 2
                      + (current_target[1] - current_position[1]) ** 2) ** 0.5
 
-            if distance < 4 * ROBOT_RADIUS or arrived[index]:
+            if distance < 2 * ROBOT_RADIUS or arrived[index]:
                 # Keep moving for a bit
                 arrived[index] = True
                 # Within 3 degrees
@@ -393,9 +392,9 @@ def run(args):
             vel_msg.linear.x = u
             vel_msg.angular.z = w
             publishers[index].publish(vel_msg)
-            if index == 0:
+            """if index == 0:
                 print(ground_truths[index].pose,
-                      estimated_positions[index].pose)
+                      estimated_positions[index].pose)"""
             estimated_positions[index].apply_motion_model(u, w, loop_time)
 
             pose_history[index].append(ground_truths[index].pose)

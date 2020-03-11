@@ -3,6 +3,8 @@
 \usepackage{hyperref}
 \usepackage{graphicx}
 
+\setbeamertemplate{caption}{\insertcaption}
+
 \title{Mobile Robot Systems Mini Project 5}
 \author{Sam Sully (sjs252), Paul Durbaba (pd452), Luke Dunsmore (ldd25)}
 \date{Lent 2020}
@@ -108,6 +110,76 @@
 		\end{itemize}
 	
 	\end{frame}
+	
+	\begin{frame}
+		\frametitle{DARP}
+		\includegraphics[width=\linewidth]{DARPImages/World_with_robots}
+
+	\end{frame}
+
+	
+	\begin{frame}
+		\frametitle{DARP}
+		\begin{figure}[H]
+			\begin{minipage}{0.3\textwidth}
+    			\includegraphics[width=\linewidth]{DARPImages/0}
+    			\caption{r=1}
+    		\end{minipage}
+    		\hspace{\fill} % note: no blank line here
+    		\begin{minipage}{0.3\textwidth}
+    			\includegraphics[width=\linewidth]{DARPImages/10}
+    			\caption{r=10}
+    		\end{minipage}
+    		\hspace{\fill} % note: no blank line here
+    		\begin{minipage}{0.3\textwidth}
+    			\includegraphics[width=\linewidth]{DARPImages/50}
+    			\caption{r=50}
+    		\end{minipage}
+
+    		\vspace*{1cm} % vertical separation
+
+    		\begin{minipage}{0.3\textwidth}{}
+    			\includegraphics[width=\linewidth]{DARPImages/100}
+   				\caption{r=100}
+    		\end{minipage}
+    		\hspace{\fill} % note: no blank line here
+    		\begin{minipage}{0.3\textwidth}
+    			\includegraphics[width=\linewidth]{DARPImages/200}
+    			\caption{200}
+    		\end{minipage}
+    		\hspace{\fill} % note: no blank line here
+   			\begin{minipage}{0.3\textwidth}
+    			\includegraphics[width=\linewidth]{DARPImages/346}
+    			\caption{r=346}
+    		\end{minipage}
+		
+			\caption{Regions after r iterations.} \label{fig:4pics}
+		\end{figure}
+	\end{frame}
+	\begin{frame}
+		\frametitle{Path Planning}
+		\begin{itemize}
+			\item<2-> Each cell is 2x the diameter of the robot.
+			\item<3-> For each region, construct a spanning tree between the cells.
+			\item<4-> Trace a path around the edges of the spanning tree.
+		\end{itemize}
+	\end{frame}
+	\begin{frame}
+		\frametitle{Path Planning}
+		\centering
+			\includegraphics[width=0.7\linewidth]{SpanningTreeExample}
+	\end{frame}
+	\begin{frame}
+		\frametitle{Path Following}
+		
+	\end{frame}
+
+
+
+
+
+
+
 
 
 

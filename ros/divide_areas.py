@@ -192,7 +192,7 @@ def draw_world(occupancy_grid, robot_locations, assignments, lines_plot={}, pose
             plt.gca().add_patch(rectangle)
             #plt.show()
 
-    """for line_start in lines_plot:
+    for line_start in lines_plot:
         for line_direction in lines_plot[line_start]:
             if line_direction == 0:
                 line_end = (line_start[0] - line_multiplier, line_start[1])
@@ -210,26 +210,28 @@ def draw_world(occupancy_grid, robot_locations, assignments, lines_plot={}, pose
             x_values = [x1, x2]
             y_values = [y1, y2]
 
-            plt.plot(x_values, y_values, c='black')"""
+            plt.plot(x_values, y_values, c='black')
 
-    for pose in poses:
-        x, y, angle = pose
-        x, y = occupancy_grid.get_position(x, y)
-        if angle == 0:
-            plt.arrow(x, y - occupancy_grid.resolution /
-                      8, 0, occupancy_grid.resolution / 4)
-        elif angle == np.pi / 2:
-            plt.arrow(x + occupancy_grid.resolution / 8,
-                      y, -occupancy_grid.resolution / 4, 0)
-        elif angle == np.pi:
-            plt.arrow(x, y + occupancy_grid.resolution /
-                      8, 0, -occupancy_grid.resolution / 4)
-        elif angle == -np.pi / 2:
-            plt.arrow(x - occupancy_grid.resolution / 8,
-                      y, occupancy_grid.resolution / 4, 0)
-        else:
-            print("Unable to plot")
-            sys.exit()
+    for posess in poses:
+        for pose in posess:
+            x, y, angle = pose
+            x, y = occupancy_grid.get_position(x, y)
+            if angle == 0:
+                plt.arrow(x, y - occupancy_grid.resolution /
+                          8, 0, occupancy_grid.resolution / 4)
+            elif angle == np.pi / 2:
+                plt.arrow(x + occupancy_grid.resolution / 8,
+                          y, -occupancy_grid.resolution / 4, 0)
+            elif angle == np.pi:
+                plt.arrow(x, y + occupancy_grid.resolution /
+                          8, 0, -occupancy_grid.resolution / 4)
+            elif angle == -np.pi / 2:
+                plt.arrow(x - occupancy_grid.resolution / 8,
+                          y, occupancy_grid.resolution / 4, 0)
+            else:
+                print("Unable to plot")
+                sys.exit()
+            plt.show()
 
     for robot in robot_locations:
         plot_position = occupancy_grid.get_position(robot[0], robot[1])
@@ -1091,10 +1093,13 @@ def divide(args, robot_locations, robot_speed):
     robot_edges = []
     robot_paths = []  # list of poses for the robot.
     routes = []
+    plot_edges = {}
     for robot_location in robot_locations:
         new_edges = calculate_mst(occupancy_grid, assignments, robot_location)
         robot_edges.append(new_edges)
-        #draw_world(occupancy_grid, robot_locations, assignments, lines_plot = new_edges)
+        for i in new_edges:
+            plot_edges[i] = new_edges[i]
+        draw_world(occupancy_grid, robot_locations, assignments, lines_plot = new_edges)
         poses = generate_route_poses(
             new_edges, robot_location, occupancy_grid, robot_locations, assignments, lines_plot=new_edges)
         scaled_poses = []
@@ -1114,7 +1119,7 @@ def divide(args, robot_locations, robot_speed):
         #sys.exit()
         for key in new_edges:
             edges_used[key] = new_edges[key]
-
+    draw_world(occupancy_grid, robot_locations, assignments, lines_plot = plot_edges, poses=robot_paths)
     # Reconvert back to orignal world
     print(robot_locations)
     for i in range(len(robot_locations)):
@@ -1132,13 +1137,13 @@ def divide(args, robot_locations, robot_speed):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Provides routes to each robot to give full coverage.')
-    parser.add_argument('--map', action='store', default='../ros/world_map',
+    parser.add_argument('--map', action='store', default='../ros/small_map',
                         help='Which map to use.')
     args, unknown = parser.parse_known_args()
     """f = create_route([1, 2, 3, 4, 1], 10)
     for i in range(0, 10):
         print(f(i))"""
-    robot_locations = [(-3.5, -3.5), (-3, -2.5), (-2.8, -2.8), (-1.3, -1)]
+    robot_locations = [(-1.5, -1.5), (0, -1), (1.5, 1.5)]
     divide(args, robot_locations, 450)
     """try:
         run(args)

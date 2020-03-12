@@ -80,7 +80,7 @@ def get_velocity(position, target, robot_speed, expected_direction=None):
 
   v = (target - position)
   v /= np.linalg.norm(v[:2])
-  v /= 7
+  v /= 4
   return v
 
 class SimpleLaser(object):
@@ -208,8 +208,8 @@ def run(args):
         lasers.append(SimpleLaser(name=robot))
         # Keep track of groundtruth position for plotting purposes.
         ground_truths.append(GroundtruthPose(name=robot))
-        #estimated_positions.append(LocalisationPose(name=robot))
-        estimated_positions.append(GroundtruthPose(name=robot))
+        estimated_positions.append(LocalisationPose(name=robot))
+        #estimated_positions.append(GroundtruthPose(name=robot))
         pose_history.append([])
 
     # plotting values
@@ -273,7 +273,7 @@ def run(args):
                 vel_msg.angular.z = w
                 publishers[index].publish(vel_msg)
                 estimated_positions[index].apply_motion_model(u, w, loop_time)
-            for i in ground_truths:
+            """for i in ground_truths:
                 x, y = i.pose[:2]
                 res = original_occupancy_grid.resolution
                 #print("xy", x,y)
@@ -285,7 +285,7 @@ def run(args):
                             if original_occupancy_grid.is_free((a, b)):
                                 if cover_grid.is_free((a, b)):
                                     w, z = cover_grid.get_index((a, b))
-                                    cover_grid.values[w, z] = 3
+                                    cover_grid.values[w, z] = 3"""
             rate_limiter.sleep()
             #print(covered_locations[-10:])
 

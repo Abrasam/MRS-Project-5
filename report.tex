@@ -47,15 +47,17 @@ This can be explained as taking the product of the sums of the bivariate Gaussia
 
 We then take these two quantities, $w_i$ and $\bar{w_i}$ and multiply them together to get the final weight.
 \subsection{Performance}
-We will now compare the performance of the collaborative localisation and the non-collaborative approach. To do this we created a test environment where two robots were already well-localised and one was not, this was done because the system does not perform well in an environment where all robots are initially poorly localised due to rumour propagation. Figure 1 shows the localisation error over time with the collaborative approach while figure 2 shows the error for the standard (non-collaborative) approach. As can be clearly seen the collaborative approach yields a much faster convergence and a lower error following convergence.
+We will now compare the performance of the collaborative localisation and the non-collaborative approach. To do this we created a test environment where two robots were already well-localised and one was not, this was done because the system does not perform well in an environment where all robots are initially poorly localised due to rumour propagation. Figure \ref{fig:loca1} shows the localisation error over time with the collaborative approach while figure \ref{fig:loca2} shows the error for the standard (non-collaborative) approach. As can be clearly seen the collaborative approach yields a much faster convergence and a lower error following convergence.
 \begin{figure}
 	\centering
 	\includegraphics[width=\columnwidth]{figure_l1.png}
 	\caption{Error of localisation estimation over time using collaborative approach.}
+	\label{fig:loca1}
 \end{figure}
 \begin{figure}
 	\includegraphics[width=\columnwidth]{figure_l2.png}
 	\caption{Error of localisation estimation over time using standard approach.}
+	\label{fig:loca2}
 \end{figure}
 I tried varying the sensor noise and noticed a decrease in performance as noise was increased as one might expect. Additionally, increasing robot density improves the performance only in the case where most of the robots are well localised initially, otherwise we see rumour propagation issues as previously noted. It was difficult to gather useful data on robot density as Gazebo struggles with more than a small number of robots.
 \section{Centralised Navigation}

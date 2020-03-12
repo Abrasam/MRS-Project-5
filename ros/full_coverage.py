@@ -39,25 +39,6 @@ ROBOT_RADIUS = 0.105 / 2.
 EPSILON = ROBOT_RADIUS
 
 
-def braitenberg(front, front_left, front_right, left, right):
-    u = 0.  # [m/s]
-    w = 0.  # [rad/s] going counter-clockwise.
-
-    # MISSING: Implement a braitenberg controller that takes the range
-    # measurements given in argument to steer the robot.
-
-    t_front = np.tanh(front / 2)
-    t_front_left = np.tanh(front_left / 2)
-    t_front_right = np.tanh(front_right / 2)
-    t_left = np.tanh(left / 2)
-    t_right = np.tanh(right / 2)
-
-    u = (t_front - 0.1)
-    w = 0.6 * (t_front_left - t_front_right) + 0.3 * (t_left - t_right)
-
-    return u, w
-
-
 def rule_based(front, front_left, front_right, left, right):
     u = 0.25  # [m/s]
     w = 0.  # [rad/s] going counter-clockwise.
@@ -99,7 +80,7 @@ def get_velocity(position, target, robot_speed, expected_direction=None):
 
   v = (target - position)
   v /= np.linalg.norm(v[:2])
-  v /= 7
+  v /= 3
   return v
 
 class SimpleLaser(object):
@@ -173,6 +154,9 @@ class GroundtruthPose(object):
     def pose(self):
         return self._pose
 
+    def apply_motion_model(self, u, w, dt):
+        pass
+
 class LocalisationPose(object):
     def __init__(self, name='tb3_0'):
         rospy.Subscriber('/locpos' + name[-1], Point32, self.callback)
@@ -224,7 +208,8 @@ def run(args):
         lasers.append(SimpleLaser(name=robot))
         # Keep track of groundtruth position for plotting purposes.
         ground_truths.append(GroundtruthPose(name=robot))
-        estimated_positions.append(LocalisationPose(name=robot))
+        #estimated_positions.append(LocalisationPose(name=robot))
+        estimated_positions.append(GroundtruthPose(name=robot))
         pose_history.append([])
 
     # plotting values
@@ -265,9 +250,11 @@ def run(args):
                 vel_msg.angular.z = w
                 publishers[index].publish(vel_msg)
                 estimated_positions[index].apply_motion_model(u, w, loop_time)
-
+            for i in ground_truths:
+                x, y = i.pose[:2]
+                covered_locations.append((x, y))
             rate_limiter.sleep()
-            continue
+            print(covered_locations[-10:])
 
         if not paths_found:
             # Stop all Robots
@@ -340,11 +327,11 @@ def run(args):
                     if difference < np.pi:
                         # Difference heading to 0
                         # w = max(0.25, difference
-                        w = 0.25
+                        w = 0.75
                     else:
                         remaining = 2 * np.pi - difference
                         # w = -1*max(0.25, remaining)
-                        w = -0.25
+                        w = -0.75
                     # w = 0.2 if ((current_target[2]) - current_position[2]) > 0 and (current_target[2] - current_position[2]) < np.pi else -0.2
             else:
                 """if index == 0:

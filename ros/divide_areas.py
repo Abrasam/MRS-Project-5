@@ -741,7 +741,7 @@ def create_occupancy_grid(args):
     occupancy_grid[img > .9] = FREE
 
     # Expand the walls so that the robots have more clearance
-    for _ in range(2):
+    for _ in range(0):
         expanded_occupancy_grid = occupancy_grid.copy()
         for i in range(occupancy_grid.shape[0]):
             for j in range(occupancy_grid.shape[1]):

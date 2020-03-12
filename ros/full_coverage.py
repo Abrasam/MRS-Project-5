@@ -271,7 +271,7 @@ def run(args):
                         a, b = cover_grid.get_index(i.pose[:2])
                         cover_grid.values[a, b] = 3
             rate_limiter.sleep()
-            print(covered_locations[-10:])
+            #print(covered_locations[-10:])
 
         if not paths_found:
             # Stop all Robots
@@ -370,7 +370,7 @@ def run(args):
                 fp.write('\n'.join(','.join(str(v) for v in p)
                          for p in pose_history[index]) + '\n')
                 pose_history[index] = []
-        print(covered_locations[-10:])
+        #print(covered_locations[-10:])
         rate_limiter.sleep()
 
 

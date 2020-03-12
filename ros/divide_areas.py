@@ -768,7 +768,7 @@ def create_occupancy_grid(args):
 
     # Shrink occupancy grid - make the minimum cell size 2*robot_width so that the robot can go forwards and backwards along it.
     # Add
-    square_edge_size = np.array([ROBOT_RADIUS * 4.5, ROBOT_RADIUS * 4.5])
+    square_edge_size = np.array([ROBOT_RADIUS * 4, ROBOT_RADIUS * 4])
     square_edge_size /= occupancy_grid.resolution
     adjusted_edge_size = (occupancy_grid.values.shape //
                           square_edge_size).astype(np.int)
@@ -940,7 +940,7 @@ def divide(args, robot_locations, robot_speed):
         a, b = key
         adjusted_edges_used[(scaling*a+occupancy_grid.resolution, scaling*b+occupancy_grid.resolution)] = edges_used[key]
 
-    draw_world(original_occupancy_grid, robot_locations, assignments, lines_plot=adjusted_edges_used, line_multiplier=scaling)
+    #draw_world(original_occupancy_grid, robot_locations, assignments, lines_plot=adjusted_edges_used, line_multiplier=scaling)
     return robot_paths
 
 if __name__ == "__main__":

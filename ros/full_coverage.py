@@ -33,7 +33,7 @@ import matplotlib.pylab as plt
 from threading import Thread
 
 NUMBER_ROBOTS = 3
-ROBOT_SPEED = 0.3
+ROBOT_SPEED = 0.2
 
 ROBOT_RADIUS = 0.105 / 2.
 EPSILON = ROBOT_RADIUS
@@ -80,7 +80,7 @@ def get_velocity(position, target, robot_speed, expected_direction=None):
 
   v = (target - position)
   v /= np.linalg.norm(v[:2])
-  v /= 2
+  v /= 10
   return v
 
 class SimpleLaser(object):
@@ -208,8 +208,8 @@ def run(args):
         lasers.append(SimpleLaser(name=robot))
         # Keep track of groundtruth position for plotting purposes.
         ground_truths.append(GroundtruthPose(name=robot))
-        #estimated_positions.append(LocalisationPose(name=robot))
-        estimated_positions.append(GroundtruthPose(name=robot))
+        estimated_positions.append(LocalisationPose(name=robot))
+        #estimated_positions.append(GroundtruthPose(name=robot))
         pose_history.append([])
 
     # plotting values
@@ -333,11 +333,11 @@ def run(args):
             distance = ((current_target[0] - current_position[0]) ** 2
                      + (current_target[1] - current_position[1]) ** 2) ** 0.5
 
-            if distance < 1 * ROBOT_RADIUS or arrived[index]:
+            if distance < 4 * ROBOT_RADIUS or arrived[index]:
                 # Keep moving for a bit
                 arrived[index] = True
                 # Within 3 degrees
-                if np.absolute((current_target[2]) - current_position[2]) < (0.2):
+                if np.absolute((current_target[2]) - current_position[2]) < (0.3):
                     """if index == 0:
                         print("Next")"""
                     arrived[index] = False
@@ -384,7 +384,7 @@ def run(args):
             if len(pose_history[index]) % 10:
               with open('/tmp/gazebo_robot_nav_tb3_' + str(index) + '.txt', 'a') as fp:
                 fp.write('\n'.join(','.join(str(v) for v in p)
-                         for p in pose_history[index]) + (",%s" % (time.time() - run_time))  + '\n')
+                         for p in pose_history[index])  + (",%s" % (time.time() - run_time)) + '\n')
                 pose_history[index] = []
         #print(covered_locations[-10:])
         rate_limiter.sleep()

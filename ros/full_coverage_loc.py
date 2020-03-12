@@ -252,7 +252,7 @@ def run(args):
                 for b in np.linspace(y - ROBOT_RADIUS, y + ROBOT_RADIUS, 5):
                     #print(a, b, ((a - x)**2 + (b - y)**2) < ROBOT_RADIUS**2)
                     if ((a - x)**2 + (b - y)**2) <= ROBOT_RADIUS**2:
-                        covered_locations.append((a, b))
+                        #covered_locations.append((a, b))
                         if original_occupancy_grid.is_free((a, b)):
                             if cover_grid.is_free((a, b)):
                                 w, z = cover_grid.get_index((a, b))

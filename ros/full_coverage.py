@@ -248,11 +248,11 @@ def run(args):
             res = original_occupancy_grid.resolution
             #print(res, 2.0*ROBOT_RADIUS/res)
             #print("xy", x,y)
-            for a in np.linspace(x - ROBOT_RADIUS, x + ROBOT_RADIUS, 5):
-                for b in np.linspace(y - ROBOT_RADIUS, y + ROBOT_RADIUS, 5):
+            for a in np.linspace(x - ROBOT_RADIUS, x + ROBOT_RADIUS,25):
+                for b in np.linspace(y - ROBOT_RADIUS, y + ROBOT_RADIUS, 25):
                     #print(a, b, ((a - x)**2 + (b - y)**2) < ROBOT_RADIUS**2)
                     if ((a - x)**2 + (b - y)**2) <= ROBOT_RADIUS**2:
-                        covered_locations.append((a, b))
+                        #covered_locations.append((a, b))
                         if original_occupancy_grid.is_free((a, b)):
                             if cover_grid.is_free((a, b)):
                                 w, z = cover_grid.get_index((a, b))
@@ -273,19 +273,19 @@ def run(args):
                 vel_msg.angular.z = w
                 publishers[index].publish(vel_msg)
                 estimated_positions[index].apply_motion_model(u, w, loop_time)
-            for i in ground_truths:
+            """for i in ground_truths:
                 x, y = i.pose[:2]
                 res = original_occupancy_grid.resolution
                 #print("xy", x,y)
-                for a in np.linspace(x - ROBOT_RADIUS, x + ROBOT_RADIUS, 5):
-                    for b in np.linspace(y - ROBOT_RADIUS, y + ROBOT_RADIUS, 5):
+                for a in np.linspace(x - ROBOT_RADIUS, x + ROBOT_RADIUS, 30):
+                    for b in np.linspace(y - ROBOT_RADIUS, y + ROBOT_RADIUS, 30):
                         #print(a, b, ((a - x)**2 + (b - y)**2) < ROBOT_RADIUS**2)
                         if ((a - x)**2 + (b - y)**2) <= ROBOT_RADIUS**2:
-                            covered_locations.append((a, b))
+                            #covered_locations.append((a, b))
                             if original_occupancy_grid.is_free((a, b)):
                                 if cover_grid.is_free((a, b)):
                                     w, z = cover_grid.get_index((a, b))
-                                    cover_grid.values[w, z] = 3
+                                    cover_grid.values[w, z] = 3"""
             rate_limiter.sleep()
             #print(covered_locations[-10:])
 

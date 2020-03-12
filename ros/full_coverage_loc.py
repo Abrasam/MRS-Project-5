@@ -10,7 +10,7 @@ import rospy
 
 import scipy.special
 
-from divide_areas import divide, create_occupancy_grid
+from divide_areas_loc import divide, create_occupancy_grid
 from plot_trajectory_nav import plot_trajectory
 import time
 
@@ -333,7 +333,7 @@ def run(args):
             distance = ((current_target[0] - current_position[0]) ** 2
                      + (current_target[1] - current_position[1]) ** 2) ** 0.5
 
-            if distance < 1 * ROBOT_RADIUS or arrived[index]:
+            if distance < 2 * ROBOT_RADIUS or arrived[index]:
                 # Keep moving for a bit
                 arrived[index] = True
                 # Within 3 degrees

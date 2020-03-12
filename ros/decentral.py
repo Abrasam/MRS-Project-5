@@ -8,6 +8,7 @@ import obstacle_avoidance
 import divide_areas
 import region_trade
 import rrt
+import rrt_improved
 import full_coverage
 
 # http://docs.ros.org/api/geometry_msgs/html/msg/Twist.html
@@ -103,7 +104,7 @@ class Robot:
 
     bigPos = self.original_grid.get_index(self.position_array())
 
-    return int(np.round(bigPos[0] / self.scaling)), int(np.round(bigPos[1] / self.scaling))
+    return int(bigPos[0] / self.scaling), int(bigPos[1] / self.scaling)
 
   def send_move_command(self, u, w):
     vel_msg = Twist()
@@ -340,25 +341,51 @@ class Robot:
 
     return final_node is not None
 
+  def rrt_to_owned(self):
+
+    def is_goal(pos):
+
+      big_idx = self.original_grid.get_index(pos)
+      small_idx = int(big_idx[0] / self.scaling), int(big_idx[1] / self.scaling)
+
+      if small_idx[0] < 0 or small_idx[1] < 0 or small_idx[0] > np.shape(self.owned)[0] or small_idx[1] > np.shape(self.owned)[1]:
+        return False
+
+      return self.owned[small_idx] == 1
+
+    def random_in_goal():
+      small_idx = region_trade.random_owned_pos(self.owned)
+      big_idx = int(small_idx[0] * self.scaling), int(small_idx[1] * self.scaling)
+
+      return self.original_grid.get_position(big_idx[0], big_idx[1])
+
+    start_node, final_node = rrt_improved.rrt(self.pose(), is_goal, random_in_goal, self.original_grid)
+    if final_node is not None:
+      self.path = rrt.get_path(final_node)
+
+    return final_node is not None
+
   def target_random_in_region(self):
 
-    small_target = region_trade.random_owned_pos(self.owned)
-    if small_target is None:
-      return
+    # small_target = region_trade.random_owned_pos(self.owned)
+    # if small_target is None:
+    #   return
+    #
+    # big_target = np.array([small_target[0] * self.scaling, small_target[1] * self.scaling], dtype=np.float32)
+    # target_pos = self.original_grid.get_position(big_target[0], big_target[1])
+    #
+    # # Target as close as possible
+    # for i in range(0, 20):
+    #   other_target = region_trade.random_owned_pos(self.owned)
+    #   o_big = self.original_grid.get_position(other_target[0] * self.scaling, other_target[1] * self.scaling)
+    #
+    #   if np.linalg.norm(o_big - self.position_array()) < np.linalg.norm(target_pos - self.position_array()):
+    #     target_pos = o_big
+    #
+    #
+    # self.rrt_target(target_pos)
 
-    big_target = np.array([small_target[0] * self.scaling, small_target[1] * self.scaling], dtype=np.float32)
-    target_pos = self.original_grid.get_position(big_target[0], big_target[1])
-
-    # Target as close as possible
-    for i in range(0, 20):
-      other_target = region_trade.random_owned_pos(self.owned)
-      o_big = self.original_grid.get_position(other_target[0] * self.scaling, other_target[1] * self.scaling)
-
-      if np.linalg.norm(o_big - self.position_array()) < np.linalg.norm(target_pos - self.position_array()):
-        target_pos = o_big
-
-
-    self.rrt_target(target_pos)
+    self.rrt_to_owned()
 
   # Meet all the robots in the array, except if they have the same id
   def perform_meetings(self, robots, radio_range):

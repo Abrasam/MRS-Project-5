@@ -190,12 +190,15 @@ def trade_regions(grid, for_sale, rob_a_pos, rob_b_pos):
 
       index = 0
 
+      all_cutoff = True
+
       while index < len(current_us.frontier):
         current_pos = current_us.frontier[index]
 
         # Check that it's not owned by the other side
         if current_us.has_free and current_other.owned[current_pos]:
           index += 1
+          all_cutoff = False
           continue
 
         # Check if no longer reachable
@@ -208,10 +211,18 @@ def trade_regions(grid, for_sale, rob_a_pos, rob_b_pos):
           index += 1
           continue
 
+        all_cutoff = False
+
         # Buy this position
         del current_us.frontier[index]
         buy_position(current_pos, current_us, current_other)
         return True
+
+      if all_cutoff:
+        for j in range(0, len(current_us.frontier)):
+          current_us.frontier_grid[current_us.frontier[j]] = 0
+
+        current_us.frontier = []
 
       return False
 
@@ -248,6 +259,39 @@ def draw_grid(grid):
   plt.show()
 
 
+def convergence_trial(grid, for_sale, num_robots, max_trials):
+
+  rob_owned = [for_sale for i in range(0, num_robots)]
+
+  for i in range(0, max_trials):
+    # print("i is " + str(i))
+    rob_a = np.random.randint(0, num_robots)
+    rob_b = np.random.randint(0, num_robots - 1)
+    if rob_b >= rob_a:
+      rob_b += 1
+
+    a_pos = random_owned_pos(rob_owned[rob_a])
+    if a_pos is None:
+      a_pos = random_owned_pos(for_sale)
+
+    b_pos = random_owned_pos(rob_owned[rob_b])
+    if b_pos is None:
+      b_pos = random_owned_pos(for_sale)
+
+    a_owned, b_owned = trade_regions(grid, np.logical_or(rob_owned[rob_a], rob_owned[rob_b]), a_pos, b_pos)
+    rob_owned[rob_a] = a_owned
+    rob_owned[rob_b] = b_owned
+
+    all_owned = np.zeros_like(grid)
+    for rid in range(0, num_robots):
+      all_owned += rob_owned[rid]
+
+    if np.array_equal(for_sale, all_owned):
+      return i
+
+  return None
+
+
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description='Provides routes to each robot to give full coverage.')
   parser.add_argument('--map', action='store', default='../ros/world_map',
@@ -262,51 +306,65 @@ if __name__ == "__main__":
   draw_grid(occupancy_grid.values)
   draw_grid(for_sale)
 
-  rob_a_pos = (34, 21)
-  rob_b_pos = (4, 6)
-  rob_c_pos = (31, 6)
+  for i in range(2, 15):
+    total_trials = 0
+    trial_count = int(100 / i) + 1
+    for j in range(0, trial_count):
+      this_trial = None
+      while this_trial is None:
+        this_trial = convergence_trial(occupancy_grid.values, for_sale, i, 4 * i * i + 10)
 
-  a_owned = for_sale
-  b_owned = for_sale
-  c_owned = for_sale
+      total_trials += this_trial
 
-  for i in range(0, 20):
-    rnum = np.random.randint(0, 3)
+    trials = 1 + (total_trials / trial_count)
 
-    rob_a_pos = random_owned_pos(a_owned)
-    rob_b_pos = random_owned_pos(b_owned)
-    rob_c_pos = random_owned_pos(c_owned)
+    print("For " + str(i) + " robots, takes an average of " + str(trials) + " trials")
 
-    if rnum == 0:
-      print("Trade a b")
-      a_owned, b_owned = trade_regions(occupancy_grid.values, np.logical_or(a_owned, b_owned), rob_a_pos, rob_b_pos)
-    elif rnum == 1:
-      print("Trade b c")
-      b_owned, c_owned = trade_regions(occupancy_grid.values, np.logical_or(b_owned, c_owned), rob_b_pos, rob_c_pos)
-    elif rnum == 2:
-      print("Trade a c")
-      a_owned, c_owned = trade_regions(occupancy_grid.values, np.logical_or(a_owned, c_owned), rob_a_pos, rob_c_pos)
-
-    final_grid = np.zeros_like(for_sale)
-    final_grid[a_owned == 1] += 1
-    final_grid[b_owned == 1] += 2
-    final_grid[c_owned == 1] += 4
-    draw_grid(final_grid)
-
-  draw_grid(a_owned)
-  draw_grid(b_owned)
-  draw_grid(c_owned)
-
-  final_grid = np.zeros_like(for_sale)
-  final_grid[a_owned == 1] += 1
-  final_grid[b_owned == 1] += 2
-  final_grid[c_owned == 1] += 4
-
-  print("a owns " + str(np.count_nonzero(a_owned)))
-  print("b owns " + str(np.count_nonzero(b_owned)))
-  print("c owns " + str(np.count_nonzero(c_owned)))
-
-  draw_grid(final_grid)
+  # rob_a_pos = (34, 21)
+  # rob_b_pos = (4, 6)
+  # rob_c_pos = (31, 6)
+  #
+  # a_owned = for_sale
+  # b_owned = for_sale
+  # c_owned = for_sale
+  #
+  # for i in range(0, 20):
+  #   rnum = np.random.randint(0, 3)
+  #
+  #   rob_a_pos = random_owned_pos(a_owned)
+  #   rob_b_pos = random_owned_pos(b_owned)
+  #   rob_c_pos = random_owned_pos(c_owned)
+  #
+  #   if rnum == 0:
+  #     print("Trade a b")
+  #     a_owned, b_owned = trade_regions(occupancy_grid.values, np.logical_or(a_owned, b_owned), rob_a_pos, rob_b_pos)
+  #   elif rnum == 1:
+  #     print("Trade b c")
+  #     b_owned, c_owned = trade_regions(occupancy_grid.values, np.logical_or(b_owned, c_owned), rob_b_pos, rob_c_pos)
+  #   elif rnum == 2:
+  #     print("Trade a c")
+  #     a_owned, c_owned = trade_regions(occupancy_grid.values, np.logical_or(a_owned, c_owned), rob_a_pos, rob_c_pos)
+  #
+  #   final_grid = np.zeros_like(for_sale)
+  #   final_grid[a_owned == 1] += 1
+  #   final_grid[b_owned == 1] += 2
+  #   final_grid[c_owned == 1] += 4
+  #   draw_grid(final_grid)
+  #
+  # draw_grid(a_owned)
+  # draw_grid(b_owned)
+  # draw_grid(c_owned)
+  #
+  # final_grid = np.zeros_like(for_sale)
+  # final_grid[a_owned == 1] += 1
+  # final_grid[b_owned == 1] += 2
+  # final_grid[c_owned == 1] += 4
+  #
+  # print("a owns " + str(np.count_nonzero(a_owned)))
+  # print("b owns " + str(np.count_nonzero(b_owned)))
+  # print("c owns " + str(np.count_nonzero(c_owned)))
+  #
+  # draw_grid(final_grid)
 
   # divide_areas.draw_world(occupancy_grid, [], [])
 

@@ -29,6 +29,26 @@ In the first phase of collision avoidance, robots slow down and change their bea
 
 The second phase, when the current path is certain to result in a collision, is to drop the current path and revert to rule based navigation until the robot has rotated sufficiently that they would no longer collide if they moved forward. This can then result in the robot navigating outside it's region and having to use RRT to re-enter it.
 
+\begin{figure}
+	\includegraphics[width=\columnwidth]{dec_t2_cover.png}
+	\caption{Robot trajectories within regions after 8000 seconds}
+    \label{fig:decCover}
+\end{figure}
+
+
+
+
+Figure \ref{fig:decCover} shows the resulting trajectories of the robots within their regions, based on outputting each robot's position 10 times per second. By counting how often they fall inside their regions, robots 0 (red line on blue) ,1 (green on green) and 2 (blue line on brown) spend 84\%, 91\% and 70\% of their time within their own regions respectively.
+
+\begin{figure}
+	\includegraphics[width=\columnwidth]{dec_t2_line_percent.png}
+	\caption{Coverage (percent of region cells out of 178) / Time (seconds)}
+    \label{fig:decLine}
+\end{figure}
+
+Figure \ref{fig:decLine} shows the number of grid cells covered over time, showing that after 500 seconds the robots are able to cover 80\% of the world. The robots are programmed to move very slowly (0.15 m/s), but even at that speed localization errors will result in some cells being missed on some laps of the MST. However, after 1600 seconds each of the grid cells is able to be covered.
+
+
 \section{Evaluation}
 \section{Conclusions}
 

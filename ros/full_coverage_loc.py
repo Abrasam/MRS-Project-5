@@ -80,7 +80,7 @@ def get_velocity(position, target, robot_speed, expected_direction=None):
 
   v = (target - position)
   v /= np.linalg.norm(v[:2])
-  v /= 3
+  v /= 7
   return v
 
 class SimpleLaser(object):
@@ -360,11 +360,11 @@ def run(args):
                     if difference < np.pi:
                         # Difference heading to 0
                         # w = max(0.25, difference
-                        w = 0.75
+                        w = 0.25
                     else:
                         remaining = 2 * np.pi - difference
                         # w = -1*max(0.25, remaining)
-                        w = -0.75
+                        w = -0.25
                     # w = 0.2 if ((current_target[2]) - current_position[2]) > 0 and (current_target[2] - current_position[2]) < np.pi else -0.2
             else:
                 """if index == 0:

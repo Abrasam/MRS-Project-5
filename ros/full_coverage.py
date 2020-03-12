@@ -97,28 +97,9 @@ def feedback_linearized(pose, velocity, epsilon):
 
 def get_velocity(position, target, robot_speed, expected_direction=None):
 
-  v = np.zeros_like(position)
-  # position[0] += EPSILON*np.cos(position[2])
-  # position[1] += EPSILON*np.sin(position[2])
-  #
-  # target_vel = np.array([robot_speed*np.cos(target[2]), robot_speed*np.sin(target[2]), 0])
-  # Head towards the next point
   v = (target - position)
-  #print(v)
-
-  """if expected_direction != None:
-      # Compare offset to the expected_direction. Bigger difference means further off course so more adjustment needed
-      direct_direction = np.arctan2(v[1], v[0])
-      difference = direct_direction - expected_direction
-      # Move against a third of the offset?
-      new_angle = direct_direction + difference * 0.33
-      v = np.array([np.cos(new_angle), np.sin(new_angle)])  # Only need 2 components?
-      print(difference)
-  print(v)"""
-
   v /= np.linalg.norm(v[:2])
   v /= 7
-  # v += target_vel
   return v
 
 class SimpleLaser(object):
@@ -278,17 +259,8 @@ def run(args):
                 vel_msg.linear.x = u
                 vel_msg.angular.z = w
                 publishers[index].publish(vel_msg)
-                """if index == 0:
-                    print(ground_truths[index].pose,
-                          estimated_positions[index].pose)"""
                 estimated_positions[index].apply_motion_model(u, w, loop_time)
 
-                """# Log groundtruth positions in /tmp/gazebo_exercise.txt
-                pose_histories[index].append(estimated_positions[index].pose)
-                if len(pose_histories[index]) % 10:
-                    with open('/tmp/gazebo_robot_' + robot + '.txt', 'a') as fp:
-                        # fp.write('\n'.join(','.join(str(v) for v in p) for p in pose_history) + '\n')
-                        pose_histories[index] = []"""
             rate_limiter.sleep()
             continue
 
@@ -301,12 +273,6 @@ def run(args):
             for index in range(NUMBER_ROBOTS):
                 robot = "tb3_%s" % index
                 publishers[index].publish(vel_msg)
-                # Log groundtruth positions in /tmp/gazebo_exercise.txt
-                """pose_histories[index].append(estimated_positions[index].pose)
-                if len(pose_histories[index]) % 10:
-                    with open('/tmp/gazebo_robot_' + robot + '.txt', 'a') as fp:
-                        # fp.write('\n'.join(','.join(str(v) for v in p) for p in pose_history) + '\n')
-                        pose_histories[index] = []"""
 
             # Locations - currenlty use ground truth
             # TODO - must switch to localization result
@@ -383,18 +349,10 @@ def run(args):
                 u, w = feedback_linearized(deepcopy(current_position), v, epsilon=EPSILON)
                 # u = 0.5
                 # w = 0
-
-            """if index == 0:
-                print("%.2f, %.2f, %.2f -- %.2f, %.2f, %.2f     u:%.2f, w:%.2f" %
-                      (current_position[0], current_position[1], current_position[2], current_target[0], current_target[1], current_target[2], u, w))
-"""
             vel_msg = Twist()
             vel_msg.linear.x = u
             vel_msg.angular.z = w
             publishers[index].publish(vel_msg)
-            """if index == 0:
-                print(ground_truths[index].pose,
-                      estimated_positions[index].pose)"""
             estimated_positions[index].apply_motion_model(u, w, loop_time)
 
             pose_history[index].append(ground_truths[index].pose)
@@ -403,11 +361,6 @@ def run(args):
                 fp.write('\n'.join(','.join(str(v) for v in p)
                          for p in pose_history[index]) + '\n')
                 pose_history[index] = []
-        """if counter % 1000 == 0:
-            Thread(target=plot_trajectory, args=[
-                   occupancy_grid, assignments]).start()
-        counter += 1"""
-
         rate_limiter.sleep()
 
 

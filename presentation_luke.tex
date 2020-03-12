@@ -35,7 +35,7 @@
 	\begin{frame}
 		\frametitle{LIDAR}
 		\[
-		w_i = \prod_{s_{j} \in \mathrm{Sensors}}\Phi(R(i,j), s_{ij}, \sigma^2)
+		w_i = \sum_{s_{j} \in \mathrm{Sensors}}\Phi(R(i,j), s_{ij}, \sigma^2)
 		\]
 		\begin{itemize}
 			\item $w_i$ = LIDAR weight of particle $i$
@@ -47,7 +47,7 @@
 	\begin{frame}
 		\frametitle{Range \& Bearing}
 		\[
-		\bar{w_i} = \prod_{r_j \in N_i}\sum_{p_k \in r_j}\Phi\left(
+		\bar{w_i} = \sum_{r_j \in N_i}\sum_{p_k \in r_j}\Phi\left(
 		\begin{bmatrix}
 		D_i(p_k)\\
 		\Theta_i(p_k)
@@ -57,7 +57,7 @@
 		\theta_j
 		\end{bmatrix},
 		\xi
-		\right) \cdot w_{p_k}
+		\right)
 		\]
 		\begin{itemize}
 			\item $\bar{w_i}$ range \& bearing weight of particle $i$
@@ -66,7 +66,6 @@
 			\item $\theta_j$ = received bearing of this robot from $r_j$
 			\item $D_i(p_k)$  = distance between the particle $i$ on this robot and the particle $p_k$ from the other robot
 			\item $\Theta_i(p_k)$ = bearing between the particle $i$ and the particle $p_k$ on the other robot
-			\item $w_{p_k}$ = weight of particle $k$
 			\item $\xi$ = covariance matrix
 		\end{itemize}
 		Normalising factors omitted.
@@ -80,17 +79,12 @@
 		\includegraphics[width=\columnwidth]{figure_l1.png}
 	\end{frame}
 	\begin{frame}
-		\frametitle{Demo}
-		\url{https://drive.google.com/file/d/1VfTZwqM-bqTKb0AGtHgcXKm1kq8-nVVY/view?usp=sharing}
-	\end{frame}
-	
-	\begin{frame}
 		\frametitle{Centralised Approach to World Coverage}
 		\pause
 		\begin {itemize}
-		\item<2-> Divide the world into equal regions.
-		\item<3-> Plan a path for each robot within its region.
-		\item<4-> Follow the paths.	
+			\item<2-> Divide the world into equal regions.
+			\item<3-> Plan a path for each robot within its region.
+			\item<4-> Follow the paths.	
 		\end {itemize}
 	\end{frame}
 	\begin{frame}
@@ -104,7 +98,7 @@
 			\item<6-> $x_i(t_0) \in L_i$ (each robot starts in its own region)
 		\end{itemize}
 	\end{frame}
-	
+
 	\begin{frame}
 		\frametitle{DARP}
 		The algorithm:
@@ -113,51 +107,51 @@
 			\item<3-> Assign each cell to the robot that gives it the smallest weight.
 			\item<4-> Iteratively adjust weights to balance the sizes of the regions and ensure all regions are single connected components.
 		\end{itemize}
-		
+	
 	\end{frame}
 	
 	\begin{frame}
 		\frametitle{DARP}
 		\includegraphics[width=\linewidth]{DARPImages/World_with_robots}
-		
+
 	\end{frame}
-	
+
 	
 	\begin{frame}
 		\frametitle{DARP}
 		\begin{figure}[H]
 			\begin{minipage}{0.3\textwidth}
-				\includegraphics[width=\linewidth]{DARPImages/0}
-				\caption{r=1}
-			\end{minipage}
-			\hspace{\fill} % note: no blank line here
-			\begin{minipage}{0.3\textwidth}
-				\includegraphics[width=\linewidth]{DARPImages/10}
-				\caption{r=10}
-			\end{minipage}
-			\hspace{\fill} % note: no blank line here
-			\begin{minipage}{0.3\textwidth}
-				\includegraphics[width=\linewidth]{DARPImages/50}
-				\caption{r=50}
-			\end{minipage}
-			
-			\vspace*{1cm} % vertical separation
-			
-			\begin{minipage}{0.3\textwidth}{}
-				\includegraphics[width=\linewidth]{DARPImages/100}
-				\caption{r=100}
-			\end{minipage}
-			\hspace{\fill} % note: no blank line here
-			\begin{minipage}{0.3\textwidth}
-				\includegraphics[width=\linewidth]{DARPImages/200}
-				\caption{200}
-			\end{minipage}
-			\hspace{\fill} % note: no blank line here
-			\begin{minipage}{0.3\textwidth}
-				\includegraphics[width=\linewidth]{DARPImages/346}
-				\caption{r=346}
-			\end{minipage}
-			
+    			\includegraphics[width=\linewidth]{DARPImages/0}
+    			\caption{r=1}
+    		\end{minipage}
+    		\hspace{\fill} % note: no blank line here
+    		\begin{minipage}{0.3\textwidth}
+    			\includegraphics[width=\linewidth]{DARPImages/10}
+    			\caption{r=10}
+    		\end{minipage}
+    		\hspace{\fill} % note: no blank line here
+    		\begin{minipage}{0.3\textwidth}
+    			\includegraphics[width=\linewidth]{DARPImages/50}
+    			\caption{r=50}
+    		\end{minipage}
+
+    		\vspace*{1cm} % vertical separation
+
+    		\begin{minipage}{0.3\textwidth}{}
+    			\includegraphics[width=\linewidth]{DARPImages/100}
+   				\caption{r=100}
+    		\end{minipage}
+    		\hspace{\fill} % note: no blank line here
+    		\begin{minipage}{0.3\textwidth}
+    			\includegraphics[width=\linewidth]{DARPImages/200}
+    			\caption{200}
+    		\end{minipage}
+    		\hspace{\fill} % note: no blank line here
+   			\begin{minipage}{0.3\textwidth}
+    			\includegraphics[width=\linewidth]{DARPImages/346}
+    			\caption{r=346}
+    		\end{minipage}
+		
 			\caption{Regions after r iterations.} \label{fig:4pics}
 		\end{figure}
 	\end{frame}
@@ -172,7 +166,7 @@
 	\begin{frame}
 		\frametitle{Path Planning}
 		\centering
-		\includegraphics[width=0.7\linewidth]{SpanningTreeExample}
+			\includegraphics[width=0.7\linewidth]{SpanningTreeExample}
 	\end{frame}
 	\begin{frame}
 		\frametitle{Path Following}
@@ -191,97 +185,15 @@
 		\centering
 		\includegraphics[width=\linewidth]{30min_loc_simple}
 	\end{frame}
-	
-	\begin{frame}
-		\frametitle{Decentralized Coverage}
-		\begin{itemize}
-			\item Region Trading
-			\item Navigation within region
-		\end{itemize}
-	\end{frame}
-	
-	\begin{frame}
-		\frametitle{Region Trading}
-		\begin{itemize}
-			\item Each robot starts out believing that it `owns' the whole world
-			\item When robots meet, they trade individual grid cells to try and balance the amount they both have
-			\item Converges after about 10-20 random robot pairing trades.
-		\end{itemize}
-		
-	\end{frame}
-	
-	\begin{frame}
-		\frametitle{Region Trading}
-		
-		\begin{columns}
-			\column{0.5\textwidth}
-			After 3 trades - some area still multiply owned
-			\includegraphics[width=\columnwidth]{rt_before.png}
-			\column{0.5\textwidth}
-			After 10 trades - regions are separate
-			\includegraphics[width=\columnwidth]{rt_after.png}
-		\end{columns}
-	\end{frame}
-	
-	\begin{frame}
-		\frametitle{Region Trading}
-		\begin{itemize}
-			\item Robots start by buying their positions
-			\item Then take turns buying cells using BFS
-			\item Cells already purchased by one robot can still be purchased by the other, if it has run out of unowned cells to buy
-			\begin{itemize}
-				\item Simple strategy used to avoid one robot accidentally splitting the other's region in two by doing this
-			\end{itemize}
-		\end{itemize}
-	\end{frame}
-	
-	
-	
-	\begin{frame}
-		\frametitle{Navigation within region}
-		
-		\begin{itemize}
-			\item Two approaches tried
-			\begin{itemize}
-				\item Originally used RRT to each position - RRT leads to pathing everywhere
-				\item Luke's strategy: Following around the MST of the region
-			\end{itemize}
-			\item The robots will always use RRT anyway to get back inside their region should they find themselves outside - hence paths outside of their own regions
-		\end{itemize}
-		
-	\end{frame}
-	
-	\begin{frame}
-		\frametitle{Collision avoidance}
-		
-		\begin{itemize}
-			\item Phase 1 - modify speed / bearing to avoid potential collision
-			\begin{itemize}
-				\item Robots moving towards each other will bear away from each other
-				\item Rotate away from line between the two robots
-			\end{itemize}
-			\item Phase 2 - cancel paths and switch to rule based movement away from obstacle / other robot
-		\end{itemize}
-	\end{frame}
-	
-	\begin{frame}
-		\frametitle{Following MST}
-		\begin{columns}
-			\column{0.5\textwidth}
-			\includegraphics[width=\columnwidth]{dec2.png}
-			\column{0.5\textwidth}
-			\includegraphics[width=\columnwidth]{owned_regions_2.png}
-		\end{columns}
-		
-	\end{frame}
-	
-	\begin{frame}
-		\frametitle{With Localization}
-		\begin{columns}
-			\column{0.5\textwidth}
-			\includegraphics[width=\columnwidth]{dec_with_lo.png}
-			\column{0.5\textwidth}
-			\includegraphics[width=\columnwidth]{or5.png}
-		\end{columns}
-	\end{frame}
+
+
+
+
+
+
+
+
+
+
+
 \end{document}

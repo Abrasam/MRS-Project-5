@@ -10,7 +10,7 @@ import rospy
 
 import scipy.special
 
-from divide_areas import divide
+from divide_areas import divide, create_occupancy_grid
 from plot_trajectory_nav import plot_trajectory
 import time
 
@@ -228,6 +228,12 @@ def run(args):
     counter = 0
 
     covered_locations = []
+    # Initialise map to cover.
+    original_occupancy_grid, _, _ = create_occupancy_grid(args)
+    cover_grid, _, _ = create_occupancy_grid(args)
+
+    total_to_cover = original_occupancy_grid.total_free()
+
 
     while not rospy.is_shutdown():
         # Make sure all measurements are ready.
@@ -240,6 +246,13 @@ def run(args):
         for i in ground_truths:
             x, y = i.pose[:2]
             covered_locations.append((x, y))
+            if original_occupancy_grid.is_free(i.pose):
+                if cover_grid.is_free(i.pose):
+                    a, b = cover_grid.get_index(i.pose)
+                    cover_grid.values[a, b] = 3
+        total_covered = np.sum(cover_grid.values == 3)
+        print(total_covered, total_to_cover)
+
 
         while not os.path.exists("/go"):
             for index in range(NUMBER_ROBOTS):
@@ -253,6 +266,10 @@ def run(args):
             for i in ground_truths:
                 x, y = i.pose[:2]
                 covered_locations.append((x, y))
+                if original_occupancy_grid.is_free(i.pose):
+                    if cover_grid.is_free(i.pose):
+                        a, b = cover_grid.get_index(i.pose)
+                        cover_grid.values[a, b] = 3
             rate_limiter.sleep()
             print(covered_locations[-10:])
 

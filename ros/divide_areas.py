@@ -951,7 +951,7 @@ if __name__ == "__main__":
     """f = create_route([1, 2, 3, 4, 1], 10)
     for i in range(0, 10):
         print(f(i))"""
-    #divide(args, [(1.936162, 3.2647955), (3.8319607, 1.4526322), (-0.82950312, -1.8517277)], 450)
+    divide(args, [(1.936162, 3.2647955), (3.8319607, 1.4526322), (-0.82950312, -1.8517277)], 450)
     """try:
         run(args)
     except rospy.ROSInterruptException:

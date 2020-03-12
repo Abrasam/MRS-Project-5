@@ -241,6 +241,9 @@ def run(args):
     paths_found = False
     run_time_started = False
     counter = 0
+
+    covered_locations = []
+
     while not rospy.is_shutdown():
         # Make sure all measurements are ready.
         if not all(laser.ready for laser in lasers) or not all(groundtruth.ready for groundtruth in estimated_positions):
@@ -248,8 +251,10 @@ def run(args):
             start_timer = time.time()
             continue
 
-        # print(os.getcwd())
-        # if time.time() - start_timer < 2: # Run around for 10 seconds
+        # Use separate list for all covered locations - don't split by robot - orientation doesn't matter
+        for i in ground_truths:
+            x, y = i.pose[:2]
+            covered_locations.append((x, y))
 
         while not os.path.exists("/go"):
             for index in range(NUMBER_ROBOTS):
@@ -361,6 +366,7 @@ def run(args):
                 fp.write('\n'.join(','.join(str(v) for v in p)
                          for p in pose_history[index]) + '\n')
                 pose_history[index] = []
+        print(covered_locations[-10:])
         rate_limiter.sleep()
 
 

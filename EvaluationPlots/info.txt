@@ -1,0 +1,6 @@
+Folder named by:
+
+type of localisation: grount truth, single robot loc, multi robot loc
+What value unit speed was divided by. i.e. speed = 1/x
+what value of omega for rotation
+what width was the double path set to

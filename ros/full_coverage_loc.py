@@ -384,7 +384,7 @@ def run(args):
             if len(pose_history[index]) % 10:
               with open('/tmp/gazebo_robot_nav_tb3_' + str(index) + '.txt', 'a') as fp:
                 fp.write('\n'.join(','.join(str(v) for v in p)
-                         for p in pose_history[index]) + '\n')
+                         for p in pose_history[index]) + (",%s" % (time.time() - run_time))  + '\n')
                 pose_history[index] = []
         #print(covered_locations[-10:])
         rate_limiter.sleep()

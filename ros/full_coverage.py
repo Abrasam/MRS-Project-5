@@ -80,7 +80,7 @@ def get_velocity(position, target, robot_speed, expected_direction=None):
 
   v = (target - position)
   v /= np.linalg.norm(v[:2])
-  v /= 3
+  v /= 2
   return v
 
 class SimpleLaser(object):
@@ -248,8 +248,8 @@ def run(args):
             res = original_occupancy_grid.resolution
             #print(res, 2.0*ROBOT_RADIUS/res)
             #print("xy", x,y)
-            for a in np.linspace(x - ROBOT_RADIUS, x + ROBOT_RADIUS,25):
-                for b in np.linspace(y - ROBOT_RADIUS, y + ROBOT_RADIUS, 25):
+            for a in np.linspace(x - ROBOT_RADIUS, x + ROBOT_RADIUS,20):
+                for b in np.linspace(y - ROBOT_RADIUS, y + ROBOT_RADIUS, 20):
                     #print(a, b, ((a - x)**2 + (b - y)**2) < ROBOT_RADIUS**2)
                     if ((a - x)**2 + (b - y)**2) <= ROBOT_RADIUS**2:
                         #covered_locations.append((a, b))
@@ -384,7 +384,7 @@ def run(args):
             if len(pose_history[index]) % 10:
               with open('/tmp/gazebo_robot_nav_tb3_' + str(index) + '.txt', 'a') as fp:
                 fp.write('\n'.join(','.join(str(v) for v in p)
-                         for p in pose_history[index]) + '\n')
+                         for p in pose_history[index]) + (",%s" % (time.time() - run_time))  + '\n')
                 pose_history[index] = []
         #print(covered_locations[-10:])
         rate_limiter.sleep()

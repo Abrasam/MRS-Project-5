@@ -768,7 +768,7 @@ def create_occupancy_grid(args):
 
     # Shrink occupancy grid - make the minimum cell size 2*robot_width so that the robot can go forwards and backwards along it.
     # Add
-    square_edge_size = np.array([ROBOT_RADIUS * 4, ROBOT_RADIUS * 4])
+    square_edge_size = np.array([ROBOT_RADIUS * 4.5, ROBOT_RADIUS * 4.5])
     square_edge_size /= occupancy_grid.resolution
     adjusted_edge_size = (occupancy_grid.values.shape //
                           square_edge_size).astype(np.int)

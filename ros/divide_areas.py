@@ -190,25 +190,6 @@ def draw_world(occupancy_grid, robot_locations, assignments, lines_plot={}, pose
             plt.gca().add_patch(rectangle)
             #plt.show()
 
-    """for line_start in lines_plot:
-        for line_direction in lines_plot[line_start]:
-            if line_direction == 0:
-                line_end = (line_start[0] - line_multiplier, line_start[1])
-            elif line_direction == 1:
-                line_end = (line_start[0] + line_multiplier, line_start[1])
-            elif line_direction == 2:
-                line_end = (line_start[0], line_start[1] - line_multiplier)
-            else:
-                line_end = (line_start[0], line_start[1] + line_multiplier)
-            x1, y1 = occupancy_grid.get_position(
-                *line_start) + line_multiplier * occupancy_grid.resolution / 2.
-            x2, y2 = occupancy_grid.get_position(
-                *line_end) + line_multiplier * occupancy_grid.resolution / 2.
-
-            x_values = [x1, x2]
-            y_values = [y1, y2]
-
-            plt.plot(x_values, y_values, c='black')"""
 
     for pose in poses:
         x, y, angle = pose
@@ -325,12 +306,6 @@ def divide_grid(occupancy_grid, robots):
         #unique = np.delete(unique, 0)
         #k = np.delete(k, 0)
         print(k, f)
-        """c = 0.0001
-
-        # positive value means the E values will increase.
-        ms[weight_to_change] = 1 + c * (k[weight_to_change] - f)
-        ms[weight_to_change] = max(ms[weight_to_change], 0.9)
-        ms[weight_to_change] = min(ms[weight_to_change], 1.1)"""
         Cs = []
         multi_section = np.zeros(k.shape)
         for r in range(len(robots)):
@@ -371,10 +346,6 @@ def divide_grid(occupancy_grid, robots):
         Cs = np.array(Cs)
         #Es[weight_to_change] = Cs * (Es[weight_to_change] * ms[weight_to_change])
         # Es *= (ms * Cs) #* random - possibly
-
-        """print(Es[i].shape)
-        print(ms[i].shape)
-        print(Cs[i].shape)"""
 
         # Before altering E, check if completed
         if not (1 in multi_section) and np.max(k) - np.min(k) <= not_equal_split:
@@ -591,157 +562,6 @@ def calculate_mst(occupancy_grid, assignments, robot_location):
         #draw_world(occupancy_grid, robot_locations, assignments, lines_plot = edges_used)
 
     return edges_used
-
-"""
-def generate_route_poses(edges, robot_position, occupancy_grid, robot_positions, assignments, lines_plot=[]):
-    poses = []
-    start_edges = edges[robot_position]
-    i, j = robot_position
-    if UP in start_edges:
-        # top left facing up
-        pose = (i, j + 0.25, np.pi / 2)
-        next_cell = (i - 1, j)
-        entry_point = DOWN
-    elif RIGHT in start_edges:
-        # top right facing right
-        pose = (i + 0.25, j + 1, 0)
-        next_cell = (i, j + 1)
-        entry_point = LEFT
-    elif DOWN in start_edges:
-        # bottom right facing down
-        pose = (i + 1, j + 0.75, -np.pi / 2)
-        next_cell = (i + 1, j)
-        entry_point = UP
-    elif LEFT in start_edges:
-        # bottom left facing left
-        pose = (i + 0.75, j, np.pi)
-        next_cell = (i, j - 1)
-        entry_point = RIGHT
-    else:
-        print("There has been a catastrophe.")
-    poses.append(pose)
-    start = True
-    while poses[-1] != poses[0] or start:
-        start = False
-        cell_edges = edges[next_cell]
-        i, j = next_cell
-        # always move clockwise, so e.g. from DOWN means from down left.
-        if entry_point == DOWN:
-            if LEFT in cell_edges:
-                poses.append((i + 0.75, j, np.pi))
-                next_cell = (i, j - 1)
-                entry_point = RIGHT
-            else:
-                # forward then another decision
-                poses.append((i + 0.5, j + 0.25, np.pi / 2))
-                if UP in cell_edges:
-                    poses.append((i, j + 0.25, np.pi / 2))
-                    next_cell = (i - 1, j)
-                    entry_point = DOWN
-                else:
-                    # right then another decision
-                    poses.append((i + 0.25, j + 0.5, 0))
-                    if RIGHT in cell_edges:
-                        poses.append((i + 0.25, j + 1, 0))
-                        next_cell = (i, j + 1)
-                        entry_point = LEFT
-                    else:
-                        # right, and check that all edges are here
-                        poses.append((i + 0.5, j + 0.75, -np.pi / 2))
-                        if DOWN in cell_edges:
-                            poses.append((i + 1, j + 0.75, -np.pi / 2))
-                            next_cell = (i + 1, j)
-                            entry_point = UP
-                        else:
-                            print("The robot is in a cell with no edges.")
-                            sys.exit()
-        elif entry_point == LEFT:
-            if UP in cell_edges:
-                poses.append((i, j + 0.25, np.pi / 2))
-                next_cell = (i - 1, j)
-                entry_point = DOWN
-            else:
-                poses.append((i + 0.25, j + 0.5, 0))
-                if RIGHT in cell_edges:
-                    poses.append((i + 0.25, j + 1, 0))
-                    next_cell = (i, j + 1)
-                    entry_point = LEFT
-                else:
-                    poses.append((i + 0.5, j + 0.75, -np.pi / 2))
-                    if DOWN in cell_edges:
-                        poses.append((i + 1, j + 0.75, -np.pi / 2))
-                        next_cell = (i + 1, j)
-                        entry_point = UP
-                    else:
-                        poses.append((i + 0.75, j + 0.5, np.pi))
-                        if LEFT in cell_edges:
-                            poses.append((i + 0.75, j, np.pi))
-                            next_cell = (i, j - 1)
-                            entry_point = RIGHT
-                        else:
-                            print("The robot is in a cell with no edges.")
-                            sys.exit()
-        elif entry_point == UP:
-
-            if RIGHT in cell_edges:
-                poses.append((i + 0.25, j + 1, 0))
-                next_cell = (i, j + 1)
-                entry_point = LEFT
-            else:
-                poses.append((i + 0.5, j + 0.75, -np.pi / 2))
-                if DOWN in cell_edges:
-                    poses.append((i + 1, j + 0.75, -np.pi / 2))
-                    next_cell = (i + 1, j)
-                    entry_point = UP
-                else:
-                    poses.append((i + 0.75, j + 0.5, np.pi))
-                    if LEFT in cell_edges:
-                        poses.append((i + 0.75, j, np.pi))
-                        next_cell = (i, j - 1)
-                        entry_point = RIGHT
-                    else:
-                        poses.append((i + 0.5, j + 0.25, np.pi / 2))
-                        if UP in cell_edges:
-                            poses.append((i, j + 0.25, np.pi / 2))
-                            next_cell = (i - 1, j)
-                            entry_point = DOWN
-                        else:
-                            print("The robot is in a cell with no edges.")
-                            sys.exit()
-        elif entry_point == RIGHT:
-
-            if DOWN in cell_edges:
-                poses.append((i + 1, j + 0.75, -np.pi / 2))
-                next_cell = (i + 1, j)
-                entry_point = UP
-            else:
-                poses.append((i + 0.75, j + 0.5, np.pi))
-                if LEFT in cell_edges:
-                    poses.append((i + 0.75, j, np.pi))
-                    next_cell = (i, j - 1)
-                    entry_point = RIGHT
-                else:
-                    poses.append((i + 0.5, j + 0.25, np.pi / 2))
-                    if UP in cell_edges:
-                        poses.append((i, j + 0.25, np.pi / 2))
-                        next_cell = (i - 1, j)
-                        entry_point = DOWN
-                    else:
-                        poses.append((i + 0.25, j + 0.5, 0))
-                        if RIGHT in cell_edges:
-                            poses.append((i + 0.25, j + 1, 0))
-                            next_cell = (i, j + 1)
-                            entry_point = LEFT
-                        else:
-
-                            print("The robot is in a cell with no edges.")
-                            sys.exit()
-        else:
-            print("Should not have reached here")
-            sys.exit()
-        #draw_world(occupancy_grid, robot_locations, assignments, lines_plot = lines_plot, poses=poses)
-
-    return poses"""
 
 def generate_route_poses(edges, robot_position, occupancy_grid, robot_positions, assignments, lines_plot=[]):
     poses = []
@@ -1014,10 +834,6 @@ def create_route(poses, robot_speed, occupancy_grid):
                     start_pose[2])
         else:
             angle = (end_pose[2] - start_pose[2]) * fraction
-            """if start_pose[2] == 0:
-                if end_pose[2] == np.pi/2:
-                    pose = (end_pose[0]-np.cos(angle))"""
-
             angle = end_pose[2] + np.pi + fraction*(end_pose[2] - start_pose[2])
             radius = np.absolute(start_pose[0]-end_pose[0])
 
@@ -1106,8 +922,7 @@ def divide(args, robot_locations, robot_speed):
         robot_paths.append(scaled_poses)
 
         pose_func = create_route(deepcopy(scaled_poses), robot_speed, original_occupancy_grid)
-        """for i in range(100000):
-            pose_func(i)"""
+
         routes.append(pose_func)
         #sys.exit()
         for key in new_edges:

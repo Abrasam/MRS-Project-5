@@ -82,11 +82,12 @@ def run(args):
     print("For robot " + str(id) + " fraction was " + str(inside_count) + " / " + str(total) + " = " + str(frac))
 
   covered = np.zeros_like(reg_id)
+  total_cells = np.count_nonzero(reg_id)
 
   x_data = []
   after_1000 = []
 
-  for i in range(0, 200000):
+  for i in range(0, 160000):
     for id in range(0, 3):
       data = rob_data[id]
 
@@ -99,11 +100,10 @@ def run(args):
 
       if i % 1000 == 0:
         x_data.append(i / 100)
-        after_1000.append(np.count_nonzero(covered))
+        after_1000.append(100 * float(np.count_nonzero(covered)) / float(total_cells))
 
 
   total_covered = np.count_nonzero(covered)
-  total_cells = np.count_nonzero(reg_id)
   c_frac = float(total_covered) / float(total_cells)
 
   print("Covered cells was " + str(total_covered) + " / " + str(total_cells) + " = " + str(c_frac))

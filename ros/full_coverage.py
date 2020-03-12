@@ -246,9 +246,9 @@ def run(args):
         for i in ground_truths:
             x, y = i.pose[:2]
             covered_locations.append((x, y))
-            if original_occupancy_grid.is_free(i.pose):
-                if cover_grid.is_free(i.pose):
-                    a, b = cover_grid.get_index(i.pose)
+            if original_occupancy_grid.is_free(i.pose[:2]):
+                if cover_grid.is_free(i.pose[:2]):
+                    a, b = cover_grid.get_index(i.pose[:2])
                     cover_grid.values[a, b] = 3
         total_covered = np.sum(cover_grid.values == 3)
         print(total_covered, total_to_cover)
@@ -266,9 +266,9 @@ def run(args):
             for i in ground_truths:
                 x, y = i.pose[:2]
                 covered_locations.append((x, y))
-                if original_occupancy_grid.is_free(i.pose):
-                    if cover_grid.is_free(i.pose):
-                        a, b = cover_grid.get_index(i.pose)
+                if original_occupancy_grid.is_free(i.pose[:2]):
+                    if cover_grid.is_free(i.pose[:2]):
+                        a, b = cover_grid.get_index(i.pose[:2])
                         cover_grid.values[a, b] = 3
             rate_limiter.sleep()
             print(covered_locations[-10:])

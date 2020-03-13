@@ -729,12 +729,14 @@ def generate_route_poses(edges, robot_position, occupancy_grid, robot_positions,
     return new_poses
 
 
-def create_occupancy_grid(args):
+def create_occupancy_grid(args, mapname=None):
     print(os.getcwd())
     print(os.listdir("."))
-    with open(args.map + '.yaml') as fp:
+    if mapname == None:
+        mapname = args.map
+    with open(mapname + '.yaml') as fp:
         data = yaml.load(fp)
-    img = read_pgm(os.path.join(os.path.dirname(args.map), data['image']))
+    img = read_pgm(os.path.join(os.path.dirname(mapname), data['image']))
     occupancy_grid = np.empty_like(img, dtype=np.int8)
     occupancy_grid[:] = UNKNOWN
     occupancy_grid[img < .1] = OCCUPIED

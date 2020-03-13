@@ -86,11 +86,26 @@ The final stage of this section was to give movement instructions to the robots 
 WRITE THIS SECTION BASED ON THE RESULTS FROM THE EVALUATION
 \color{black}
 
+\subsection{Results}
+To establish how well this navigation algorithm performs, particularly when it works off predictions of the robots' locations obtained through the localisation algorithm, we first obtained a base performance where we assumed perfect localisation by using ground truth values. We wanted the robots to move as fast as they safely could, so that they would cover the world in the shortest time possible, whilst avoiding collisions and staying on their designated path.
 
+Figure~\ref{fig:ground_truth} shows the rate at which a system using ground truths covered the map, and figure~\ref{fig:ground_truth_coverage} shows the paths that the robots took. We see that the robots had fairly equally sized regions, and completed covering their respective regions at roughly the same time.
 
-\color{red}
-ANY REMAINING POINTS FROM THE PRESENTATION
-\color{black}
+\begin{figure}
+	\centering
+	\includegraphics[width=\columnwidth]{ground_truth.png}
+	\caption{Progression of world coverage with time.}
+	\label{fig:ground_truth}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=\columnwidth]{ground_truth_coverage.png}
+	\caption{Robots' paths to cover the world.}
+	\label{fig:ground_truth_coverage}
+\end{figure}
+
+SINGLE VS MULTI
 
 
 

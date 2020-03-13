@@ -344,7 +344,7 @@ def run(args):
     with open('/tmp/gazebo_robot_tb3_' + str(i) + '.txt', 'w'):
       pass
 
-  num_particles = 50
+  num_particles = 35
   particles = [[Particle() for _ in range(num_particles)] for i in range(NUM_ROBOTS)]
 
   frame_id = 0
@@ -377,7 +377,7 @@ def run(args):
       for _, p in enumerate(particles[i]):
         p.move(delta_pose)
         p.compute_weight(*laser[i].measurements)
-        #p.refine_weight(messages)
+        p.refine_weight(messages)
         total_weight += p.weight
       #print(time.time()-t)
       # Low variance re-sampling of particles.

@@ -12,21 +12,21 @@ def plot_trajectory(occupancy_grid=None, assignments=None):
     fig = plt.figure()
 
     # Data
-    robots = ['tb3_0', 'tb3_1', 'tb3_2']
-    colors = ['r', 'g', 'b']
+    robots = ['tb3_0', 'tb3_1', 'tb3_2', 'tb3_3', 'tb3_4']
+    colors = ['r', 'g', 'b', 'y', 'c']
     estcolors = ['c', 'm', 'y']
 
-    for id in range(0, 3):
+    for id in range(0, 2):
         robot = robots[id]
         color = colors[id]
-        color2 = estcolors[id]
+        #color2 = estcolors[id]
         data = np.genfromtxt('/tmp/gazebo_robot_nav_' +
                              robot + '.txt', delimiter=',')
 
         plt.plot(data[:, 0], data[:, 1], color, label=robot)
-        if data.shape[1] == 6:
+        """if data.shape[1] == 6:
             plt.plot(data[:, 3], data[:, 4], color2,
-                     label=robot + ' estimated')
+                     label=robot + ' estimated')"""
         plt.legend()
 
     img = plt.imread("small_map.png")
@@ -39,7 +39,7 @@ def plot_trajectory(occupancy_grid=None, assignments=None):
     #plt.xlim([-6.5, 6.5])
     #plt.ylim([-6.5, 6.5])
 
-    for id in range(0, 3):
+    """for id in range(0, 3):
         robot = robots[id]
         color = colors[id]
         color2 = estcolors[id]
@@ -51,7 +51,7 @@ def plot_trajectory(occupancy_grid=None, assignments=None):
             plt.plot(error, c='b', lw=2)
             plt.ylabel('Error [m]')
             plt.xlabel('Timestep')
-            plt.title(robot)
+            plt.title(robot)"""
 
     plt.show()
 

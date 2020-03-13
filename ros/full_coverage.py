@@ -32,7 +32,7 @@ import matplotlib.pylab as plt
 
 from threading import Thread
 
-NUMBER_ROBOTS = 3
+NUMBER_ROBOTS = 2
 ROBOT_SPEED = 0.2
 
 ROBOT_RADIUS = 0.105 / 2.
@@ -203,7 +203,7 @@ def run(args):
     ground_truths = []
     pose_history = []
     for index in range(NUMBER_ROBOTS):
-        robot = "tb3_" + index
+        robot = "tb3_" + str(index)
         publishers.append(rospy.Publisher(
             '/' + robot + '/cmd_vel', Twist, queue_size=5))
         lasers.append(SimpleLaser(name=robot))
@@ -362,10 +362,12 @@ def run(args):
                         # Difference heading to 0
                         # w = max(0.25, difference
                         w = 0.25
+                        w = 1
                     else:
                         remaining = 2 * np.pi - difference
                         # w = -1*max(0.25, remaining)
                         w = -0.25
+                        w = -1
                     # w = 0.2 if ((current_target[2]) - current_position[2]) > 0 and (current_target[2] - current_position[2]) < np.pi else -0.2
             else:
                 """if index == 0:

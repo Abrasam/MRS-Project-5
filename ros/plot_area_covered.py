@@ -76,4 +76,4 @@ def plot_map_cover(filename, number_robots):
 
 
 if __name__ == "__main__":
-    plot_map_cover("gt_n2", 2)
+    plot_map_cover("gt_u7_w25_4", 3)

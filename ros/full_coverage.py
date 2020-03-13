@@ -80,7 +80,7 @@ def get_velocity(position, target, robot_speed, expected_direction=None):
 
   v = (target - position)
   v /= np.linalg.norm(v[:2])
-  v /= 10
+  v /= 4
   return v
 
 class SimpleLaser(object):
@@ -202,14 +202,15 @@ def run(args):
     estimated_positions = []
     ground_truths = []
     pose_history = []
-    for robot in ["tb3_0", "tb3_1", "tb3_2"]:
+    for index in range(NUMBER_ROBOTS):
+        robot = "tb3_" + index
         publishers.append(rospy.Publisher(
             '/' + robot + '/cmd_vel', Twist, queue_size=5))
         lasers.append(SimpleLaser(name=robot))
         # Keep track of groundtruth position for plotting purposes.
         ground_truths.append(GroundtruthPose(name=robot))
-        estimated_positions.append(LocalisationPose(name=robot))
-        #estimated_positions.append(GroundtruthPose(name=robot))
+        #estimated_positions.append(LocalisationPose(name=robot))
+        estimated_positions.append(GroundtruthPose(name=robot))
         pose_history.append([])
 
     # plotting values
@@ -333,11 +334,11 @@ def run(args):
             distance = ((current_target[0] - current_position[0]) ** 2
                      + (current_target[1] - current_position[1]) ** 2) ** 0.5
 
-            if distance < 4 * ROBOT_RADIUS or arrived[index]:
+            if distance < 1 * ROBOT_RADIUS or arrived[index]:
                 # Keep moving for a bit
                 arrived[index] = True
                 # Within 3 degrees
-                if np.absolute((current_target[2]) - current_position[2]) < (0.2):
+                if np.absolute((current_target[2]) - current_position[2]) < (0.1):
                     """if index == 0:
                         print("Next")"""
                     arrived[index] = False

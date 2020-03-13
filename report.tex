@@ -29,19 +29,19 @@ This can effectively be summarised as the product of the Gaussian PDF for each s
 \subsection{Range \& Bearing}
 We then refine the weight if there are any other robots in range and line-of-sight (these robots are referred to as the neighbours, the set $N_i$ represents robot $i$'s neighbours.). To do this we compute a second weight, $\bar{w_i}$ using the below formula:
 \[
-	\bar{w_i} = \prod_{r_j \in N_i}\sum_{p_k \in r_j}\Phi\left(
-	\begin{bmatrix}
-		D_i(p_k)\\
-		\Theta_i(p_k)
-	\end{bmatrix},
-	\begin{bmatrix}
-		d_j\\
-		\theta_j
-	\end{bmatrix},
-	\xi
-	\right)
+\bar{w_i} = \prod_{r_j \in N_i}\sum_{p_k \in r_j}\Phi\left(
+\begin{bmatrix}
+D_i(p_k)\\
+\Theta_i(p_k)
+\end{bmatrix},
+\begin{bmatrix}
+d_j\\
+\theta_j
+\end{bmatrix},
+\xi
+\right)\cdot w_{p_k}
 \]
-where $p_k$ ranges over the set of particles from robot $r_j$, $d_j$ is the received distance between this robot and robot $r_j$, $\theta_j$ is the received bearing of this robot from $r_j$, $D_i(p_k)$ is the distance between the particle $i$ on this robot and the particle $p_k$ from the other robot, $\Theta_i(p_k)$ is the bearing between the particle $i$ and the particle $p_k$ on the other robot and $\xi$ is the covariance matrix. I have omitted normalisation factors.
+where $p_k$ ranges over the set of particles from robot $r_j$, $d_j$ is the received distance between this robot and robot $r_j$, $\theta_j$ is the received bearing of this robot from $r_j$, $D_i(p_k)$ is the distance between the particle $i$ on this robot and the particle $p_k$ from the other robot, $\Theta_i(p_k)$ is the bearing between the particle $i$ and the particle $p_k$ on the other robot, $\xi$ is the covariance matrix and $w_{p_k}$ is the weight of the particle $p_k$. I have omitted normalisation factors.
 
 This can be explained as taking the product of the sums of the bivariate Gaussian PDF for each particle in each robot in range where the means are the range reported from that robot and the bearing reported from that robot and the input to the PDF is the calculated values of range and bearing based on that particle's pose and the local particle's pose.
 

@@ -32,7 +32,7 @@ import matplotlib.pylab as plt
 
 from threading import Thread
 
-NUMBER_ROBOTS = 2
+NUMBER_ROBOTS = 1
 ROBOT_SPEED = 0.2
 
 ROBOT_RADIUS = 0.105 / 2.

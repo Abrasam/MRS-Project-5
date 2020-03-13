@@ -16,7 +16,7 @@ def plot_trajectory(occupancy_grid=None, assignments=None):
     colors = ['r', 'g', 'b', 'y', 'c']
     estcolors = ['c', 'm', 'y']
 
-    for id in range(0, 2):
+    for id in range(0, 1):
         robot = robots[id]
         color = colors[id]
         #color2 = estcolors[id]

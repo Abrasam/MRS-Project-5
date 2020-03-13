@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/W32TeX) (preloaded format=pdflatex 2020.1.21)  13 MAR 2020 09:40
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/W32TeX) (preloaded format=pdflatex 2020.1.21)  13 MAR 2020 09:42
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -348,22 +348,22 @@ Package caption Info: hyperref package is loaded.
 ) (./root.aux)
 \openout1 = `root.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 47.
-LaTeX Font Info:    ... okay on input line 47.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 47.
-LaTeX Font Info:    ... okay on input line 47.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 47.
-LaTeX Font Info:    ... okay on input line 47.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 47.
-LaTeX Font Info:    ... okay on input line 47.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 47.
-LaTeX Font Info:    ... okay on input line 47.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 47.
-LaTeX Font Info:    ... okay on input line 47.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 47.
-LaTeX Font Info:    ... okay on input line 47.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 43.
+LaTeX Font Info:    ... okay on input line 43.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 43.
+LaTeX Font Info:    ... okay on input line 43.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 43.
+LaTeX Font Info:    ... okay on input line 43.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 43.
+LaTeX Font Info:    ... okay on input line 43.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 43.
+LaTeX Font Info:    ... okay on input line 43.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 43.
+LaTeX Font Info:    ... okay on input line 43.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 43.
+LaTeX Font Info:    ... okay on input line 43.
 \AtBeginShipoutBox=\box30
-Package hyperref Info: Link coloring OFF on input line 47.
+Package hyperref Info: Link coloring OFF on input line 43.
  (c:/texlive/2019/texmf-dist/tex/latex/hyperref/nameref.sty
 Package: nameref 2019/09/16 v2.46 Cross-referencing by name of section
 
@@ -375,9 +375,9 @@ Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
 )
 \c@section@level=\count116
 )
-LaTeX Info: Redefining \ref on input line 47.
-LaTeX Info: Redefining \pageref on input line 47.
-LaTeX Info: Redefining \nameref on input line 47.
+LaTeX Info: Redefining \ref on input line 43.
+LaTeX Info: Redefining \pageref on input line 43.
+LaTeX Info: Redefining \nameref on input line 43.
 
 (./root.out) (./root.out)
 \@outlinefile=\write3
@@ -411,12 +411,12 @@ Package caption Info: End \AtBeginDocument code.
 <figure_l1.png, id=78, 578.16pt x 433.62pt>
 File: figure_l1.png Graphic file (type png)
 <use figure_l1.png>
-Package pdftex.def Info: figure_l1.png  used on input line 92.
+Package pdftex.def Info: figure_l1.png  used on input line 85.
 (pdftex.def)             Requested size: 245.71811pt x 184.28275pt.
 <figure_l2.png, id=80, 578.16pt x 433.62pt>
 File: figure_l2.png Graphic file (type png)
 <use figure_l2.png>
-Package pdftex.def Info: figure_l2.png  used on input line 97.
+Package pdftex.def Info: figure_l2.png  used on input line 90.
 (pdftex.def)             Requested size: 245.71811pt x 184.28275pt.
  [1{c:/texlive/2019/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
 
@@ -425,34 +425,34 @@ Package pdftex.def Info: figure_l2.png  used on input line 97.
 <figure_darp.png, id=100, 462.528pt x 346.896pt>
 File: figure_darp.png Graphic file (type png)
 <use figure_darp.png>
-Package pdftex.def Info: figure_darp.png  used on input line 137.
+Package pdftex.def Info: figure_darp.png  used on input line 130.
 (pdftex.def)             Requested size: 245.71811pt x 184.28804pt.
  [2 <./figure_l1.png> <./figure_l2.png> <./figure_darp.png>]
 <figure_mst.png, id=116, 690.07813pt x 690.58pt>
 File: figure_mst.png Graphic file (type png)
 <use figure_mst.png>
-Package pdftex.def Info: figure_mst.png  used on input line 151.
+Package pdftex.def Info: figure_mst.png  used on input line 144.
 (pdftex.def)             Requested size: 196.57523pt x 196.71196pt.
 <ground_truth.png, id=119, 462.528pt x 346.896pt>
 File: ground_truth.png Graphic file (type png)
 <use ground_truth.png>
-Package pdftex.def Info: ground_truth.png  used on input line 168.
+Package pdftex.def Info: ground_truth.png  used on input line 161.
 (pdftex.def)             Requested size: 245.71811pt x 184.28804pt.
 <ground_truth_coverage.png, id=120, 578.16pt x 433.62pt>
 File: ground_truth_coverage.png Graphic file (type png)
 <use ground_truth_coverage.png>
-Package pdftex.def Info: ground_truth_coverage.png  used on input line 175.
+Package pdftex.def Info: ground_truth_coverage.png  used on input line 168.
 (pdftex.def)             Requested size: 245.71811pt x 184.28275pt.
  [3 <./figure_mst.png> <./ground_truth.png> <./ground_truth_coverage.png>]
 <dec_t2_cover.png, id=131, 642.4pt x 481.8pt>
 File: dec_t2_cover.png Graphic file (type png)
 <use dec_t2_cover.png>
-Package pdftex.def Info: dec_t2_cover.png  used on input line 204.
+Package pdftex.def Info: dec_t2_cover.png  used on input line 197.
 (pdftex.def)             Requested size: 245.71811pt x 184.28421pt.
 <dec_t2_line_percent.png, id=133, 642.4pt x 481.8pt>
 File: dec_t2_line_percent.png Graphic file (type png)
 <use dec_t2_line_percent.png>
-Package pdftex.def Info: dec_t2_line_percent.png  used on input line 213.
+Package pdftex.def Info: dec_t2_line_percent.png  used on input line 206.
 (pdftex.def)             Requested size: 245.71811pt x 184.28421pt.
 
 
@@ -466,16 +466,16 @@ Before submitting the final camera ready copy, remember to:
  uses only Type 1 fonts and that every step in the generation
  process uses the US letter (8.5in X 11in) paper size.
 
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 226.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 219.
 [4 <./dec_t2_cover.png (PNG copy)> <./dec_t2_line_percent.png (PNG copy)>]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 226.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 219.
 
 (./root.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 226.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 226.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 219.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 219.
 Package rerunfilecheck Info: File `root.out' has not changed.
 (rerunfilecheck)             Checksum: 96629930CA650D7F58947A1F9AAD5534;1028.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 226.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 219.
  ) 
 Here is how much of TeX's memory you used:
  7450 strings out of 492162

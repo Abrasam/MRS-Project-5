@@ -1,0 +1,11 @@
+code availbale at: https://github.com/Abrasam/MRS-Project-5/
+
+Relevant files are:
+localisation_small.py - multi-robot localisation algorithm.
+plot_trajectory.py - updated plotting to plot multiple robots and their errors.
+decentral.py - decentralized navigation system
+region_trade.py - the region trader and tests for it
+rrt_improved.py - RRT* Improved with ability to target entire region at once
+plot_traj_cover.py - Plots trajectory with regions in the background
+divide_areas.py - divides world into regions and plans paths for the robots
+full_coverage.py - gives directions to robots to follow the paths

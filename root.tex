@@ -175,7 +175,7 @@ Indeed, we see that when using our multi-robot localisation
 	\label{fig:ground_truth_coverage}
 \end{figure}
 
-To evaluate the performance of the coverage algorithm, we ran simulations to see how varying the number of robots would affect the amount of time it takes to cover the map. Even under ideal circumstances, the robots won't manage to cover 1000\% of the map as a circular robot is unable to cover areas in a right angled corner, for example, and we don't let robots get too close to obstacles in case they crash. We therefore chose to compare how long it takes each team of robots to cover 80\% of the map. The results are shown in Table~\ref{tab:table1}. 
+To evaluate the performance of the coverage algorithm, we ran simulations to see how varying the number of robots would affect the amount of time it takes to cover the map. Even under ideal circumstances, the robots won't manage to cover 100\% of the map as a circular robot is unable to cover areas in a right angled corner, for example, and we don't let robots get too close to obstacles in case they crash. We therefore chose to compare how long it takes each team of robots to cover 80\% of the map. The results are shown in Table~\ref{tab:table1}. 
 
 \begin{table}[h!]
   \begin{center}
@@ -232,8 +232,9 @@ Figure \ref{fig:decCover} shows the resulting trajectories of the robots within 
 
 Figure \ref{fig:decLine} shows the number of grid cells covered over time, showing that after 500 seconds the robots are able to cover 80\% of the world. The robots are programmed to move very slowly (0.15 m/s), but even at that speed localization errors will result in some cells being missed on some laps of the MST. However, after 1600 seconds each of the grid cells is able to be covered.
 
-\section{Evaluation}
 \section{Conclusions}
+In conclusion, this system demonstrates how multi-robot localisation approaches offer improved performance over non-collaborative approaches at the expense of increased computation. The improved localisation allowed both our centralised and decentralised methods of map coverage to increase their performance. To take this project further we would like to use a more powerful machine so that we can test the system with more particles and more robots. The time complexity of the improved approach to localisation is $\mathcal{O}(RP^2)$ where $R$ is the number of robots and $P$ is the number of particles per robot, thus it became increasingly difficult to test with more robots/particles -- especially when working in a virtual machine.
+
 \begin{thebibliography}{9}
 \bibitem{prorok} A. Prorok, Models and Algorithms for Ultra-Wideband Localization in Single- and Multi-Robot Systems. 2013.
 \bibitem{darp} A. Kapoutsis et al. DARP: Divide Areas Algorithm for Optimal Multi-Robot Coverage Path Planning

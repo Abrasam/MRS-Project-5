@@ -1,6 +1,6 @@
 code availbale at: https://github.com/Abrasam/MRS-Project-5/
 
-Relevant files are:
+Relevant files are (in the ros folder):
 localisation_small.py - multi-robot localisation algorithm.
 plot_trajectory.py - updated plotting to plot multiple robots and their errors.
 decentral.py - decentralized navigation system

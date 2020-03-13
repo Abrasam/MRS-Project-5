@@ -92,6 +92,7 @@ We will now compare the performance of the collaborative localisation and the no
 	\label{fig:loca2}
 \end{figure}
 I tried varying the sensor noise and noticed a decrease in performance as noise was increased as one might expect. Additionally, increasing robot density improves the performance only in the case where most of the robots are well localised initially, otherwise we see rumour propagation issues as previously noted. It was difficult to gather useful data on robot density as Gazebo struggles with more than a small number of robots.
+
 \section{Centralised Navigation}
 This section of the project was developed by Luke Dunsmore (ldd25). The focus was on issuing movement instructions to the robots from a centralised server such that the robots cover as much of the world as possible in the shortest amount of time.
 
@@ -147,14 +148,16 @@ To generate the final path for the robot, we trace around each of the trees, and
 \end{figure}
 
 \subsection{Path Following}
-POSSIBLE SECTION TO WRITE HERE
-WRITE THIS SECTION BASED ON THE RESULTS FROM THE EVALUATION?
+To calculate movement instructions to give to each robot, we first break the required path down into the key poses. We define the key poses to be where a change of direction is required. For each robot, rather than estimate which key pose it should be heading for based on where it is, we mandate that it heads to each pose sequentially, and only moves on to the next one, once it has reached its required pose. The reason for this is that a little variation in the robot's estimation of its pose could cause it to appear to be on a different section of the required trajectory, and this could lead to somewhat random movement. For each pose that is the current target we calculate the required velocity and then apply feedback linearization to get the necessary control inputs to navigate the robot.
+
 
 
 \subsection{Results}
 To establish how well this navigation algorithm performs, particularly when it works off predictions of the robots' locations obtained through the localisation algorithm, we first obtained a base performance where we assumed perfect localisation by using ground truth values. We wanted the robots to move as fast as they safely could, so that they would cover the world in the shortest time possible, whilst avoiding collisions and staying on their designated path.
 
 Figure~\ref{fig:ground_truth} shows the rate at which a system using ground truths covered the map, and figure~\ref{fig:ground_truth_coverage} shows the paths that the robots took. We see that the robots had fairly equally sized regions, and completed covering their respective regions at roughly the same time.
+
+We can compare this to the performance of the coverage algorithm when using the locations predicted by the localisation algorithm - both when using the multi-robot enhancement, and when not. We would expect to see that when we have more accurate localisation, our time to cover the world will be lower. With more accurate positioning, the robots will do a better job of staying on their path and will therefore spend less time duplicating coverage. Indeed, we see that when using our multi-robot localisation
 
 \begin{figure}
 	\centering
@@ -170,9 +173,24 @@ Figure~\ref{fig:ground_truth} shows the rate at which a system using ground trut
 	\label{fig:ground_truth_coverage}
 \end{figure}
 
-%\color{red}
-%SINGLE VS MULTI
-%\color{black}
+\begin{table}[h!]
+  \begin{center}
+    \caption{Time to cover 80\% of the map}
+    \label{tab:table1}
+    \begin{tabular}{|l|c|}
+      \hline
+      \textbf{Number of Robots} & \textbf{Time (s)} \\
+      \hline
+      1 & 0\\
+      2 & 0\\
+      3 & 0\\
+      4 & 0\\
+      5 & 0\\
+      \hline
+    \end{tabular}
+  \end{center}
+\end{table}
+
 
 \section{Decentralised Navigation}
 This section of the project was developed by Paul Durbaba (pd452). Trading of coverage regions was used to ensure that robots have different regions to cover, and a combination of the spanning tree approach with some extra navigation and collision avoidance was used for navigation of these regions.

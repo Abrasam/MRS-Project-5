@@ -243,7 +243,7 @@ def run(args):
             continue
 
         # Use separate list for all covered locations - don't split by robot - orientation doesn't matter
-        for i in ground_truths:
+        """for i in ground_truths:
             x, y = i.pose[:2]
             res = original_occupancy_grid.resolution
             #print(res, 2.0*ROBOT_RADIUS/res)
@@ -261,7 +261,7 @@ def run(args):
 
 
         total_covered = np.sum(cover_grid.values == 3)
-        print(total_covered, total_to_cover)
+        print(total_covered, total_to_cover)"""
 
 
         while not os.path.exists("/go"):
@@ -372,6 +372,7 @@ def run(args):
                 v = get_velocity(deepcopy(current_position), deepcopy(current_target), ROBOT_SPEED, expected_direction=robot_paths[index][targets[index] - 1][2])
                 # v = np.array([1, 0])
                 u, w = feedback_linearized(deepcopy(current_position), v, epsilon=EPSILON)
+                #w = np.clip(w, -0.3, 0.3)
                 # u = 0.5
                 # w = 0
             vel_msg = Twist()

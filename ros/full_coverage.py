@@ -10,7 +10,7 @@ import rospy
 
 import scipy.special
 
-from divide_areas import divide
+from divide_areas import divide, create_occupancy_grid
 from plot_trajectory_nav import plot_trajectory
 import time
 
@@ -33,29 +33,10 @@ import matplotlib.pylab as plt
 from threading import Thread
 
 NUMBER_ROBOTS = 3
-ROBOT_SPEED = 0.3
+ROBOT_SPEED = 0.2
 
 ROBOT_RADIUS = 0.105 / 2.
 EPSILON = ROBOT_RADIUS
-
-
-def braitenberg(front, front_left, front_right, left, right):
-    u = 0.  # [m/s]
-    w = 0.  # [rad/s] going counter-clockwise.
-
-    # MISSING: Implement a braitenberg controller that takes the range
-    # measurements given in argument to steer the robot.
-
-    t_front = np.tanh(front / 2)
-    t_front_left = np.tanh(front_left / 2)
-    t_front_right = np.tanh(front_right / 2)
-    t_left = np.tanh(left / 2)
-    t_right = np.tanh(right / 2)
-
-    u = (t_front - 0.1)
-    w = 0.6 * (t_front_left - t_front_right) + 0.3 * (t_left - t_right)
-
-    return u, w
 
 
 def rule_based(front, front_left, front_right, left, right):
@@ -82,16 +63,11 @@ def feedback_linearized(pose, velocity, epsilon):
   u = 0.  # [m/s]
   w = 0.  # [rad/s] going counter-clockwise.
 
-  # Implement feedback-linearization to follow the velocity
-  # vector given as argument. Epsilon corresponds to the distance of
-  # linearized point in front of the robot.
-
   # print("velocity", velocity)
   u = velocity[0] * np.cos(pose[2]) + velocity[1] * np.sin(pose[2])
   w = (velocity[1] * np.cos(pose[2]) - velocity[0] * np.sin(pose[2])) / epsilon
 
-  # u = velocity[0]*np.cos(pose[2]) + velocity[1]*np.sin(pose[2])
-  # w = velocity[2]
+
   return u, w
 
 
@@ -99,7 +75,7 @@ def get_velocity(position, target, robot_speed, expected_direction=None):
 
   v = (target - position)
   v /= np.linalg.norm(v[:2])
-  v /= 7
+  v /= 10
   return v
 
 class SimpleLaser(object):
@@ -173,6 +149,9 @@ class GroundtruthPose(object):
     def pose(self):
         return self._pose
 
+    def apply_motion_model(self, u, w, dt):
+        pass
+
 class LocalisationPose(object):
     def __init__(self, name='tb3_0'):
         rospy.Subscriber('/locpos' + name[-1], Point32, self.callback)
@@ -184,7 +163,7 @@ class LocalisationPose(object):
     def callback(self, msg):
         self._pose[0] = msg.x
         self._pose[1] = msg.y
-        self._pose[2] = ((msg.z + np.pi) % (2 * np.pi)) - np.pi# - np.pi # Possible source of bug
+        self._pose[2] = ((msg.z + np.pi) % (2 * np.pi)) - np.pi
         # print("YAW                    ", self._pose[2])
 
     def apply_motion_model(self, u, w, dt):
@@ -218,13 +197,15 @@ def run(args):
     estimated_positions = []
     ground_truths = []
     pose_history = []
-    for robot in ["tb3_0", "tb3_1", "tb3_2"]:
+    for index in range(NUMBER_ROBOTS):
+        robot = "tb3_" + str(index)
         publishers.append(rospy.Publisher(
             '/' + robot + '/cmd_vel', Twist, queue_size=5))
         lasers.append(SimpleLaser(name=robot))
         # Keep track of groundtruth position for plotting purposes.
         ground_truths.append(GroundtruthPose(name=robot))
         estimated_positions.append(LocalisationPose(name=robot))
+        #estimated_positions.append(GroundtruthPose(name=robot))
         pose_history.append([])
 
     # plotting values
@@ -241,15 +222,21 @@ def run(args):
     paths_found = False
     run_time_started = False
     counter = 0
+
+    covered_locations = []
+    # Initialise map to cover.
+    original_occupancy_grid, _, _ = create_occupancy_grid(args)
+    cover_grid, _, _ = create_occupancy_grid(args)
+
+    total_to_cover = original_occupancy_grid.total_free()
+
+
     while not rospy.is_shutdown():
         # Make sure all measurements are ready.
         if not all(laser.ready for laser in lasers) or not all(groundtruth.ready for groundtruth in estimated_positions):
             rate_limiter.sleep()
             start_timer = time.time()
             continue
-
-        # print(os.getcwd())
-        # if time.time() - start_timer < 2: # Run around for 10 seconds
 
         while not os.path.exists("/go"):
             for index in range(NUMBER_ROBOTS):
@@ -262,7 +249,6 @@ def run(args):
                 estimated_positions[index].apply_motion_model(u, w, loop_time)
 
             rate_limiter.sleep()
-            continue
 
         if not paths_found:
             # Stop all Robots
@@ -275,7 +261,6 @@ def run(args):
                 publishers[index].publish(vel_msg)
 
             # Locations - currenlty use ground truth
-            # TODO - must switch to localization result
             # time.sleep(1)
             # Transposing location
             robot_locations= [(i.pose[0], i.pose[1]) for i in estimated_positions]
@@ -308,47 +293,40 @@ def run(args):
             distance = ((current_target[0] - current_position[0]) ** 2
                      + (current_target[1] - current_position[1]) ** 2) ** 0.5
 
-            if distance < 2 * ROBOT_RADIUS or arrived[index]:
+            if distance < 4 * ROBOT_RADIUS or arrived[index]:
                 # Keep moving for a bit
                 arrived[index] = True
                 # Within 3 degrees
                 if np.absolute((current_target[2]) - current_position[2]) < (0.2):
-                    """if index == 0:
-                        print("Next")"""
                     arrived[index] = False
                     targets[index] += 1
                     targets[index] %= len(robot_paths[index])
                     current_target = robot_paths[index][targets[index]]
-                    # print(current_target)
+
                     v = get_velocity(current_position.copy(), deepcopy(current_target), ROBOT_SPEED, expected_direction=robot_paths[index][targets[index] - 1][2])
-                    # v = np.array([1, 0])
+
                     u, w = feedback_linearized(current_position.copy(), v, epsilon=EPSILON)
-                    # u=0.5
-                    # w=0
+
+
                 else:
-                    """if index == 0:
-                        print("Rotating")"""
+
                     # Rotate to correct orientation
                     u = 0
                     difference = ((current_target[2] % (2 * np.pi)) - (current_position[2] % (2 * np.pi))) % (2 * np.pi)
 
                     if difference < np.pi:
-                        # Difference heading to 0
-                        # w = max(0.25, difference
                         w = 0.25
+
                     else:
                         remaining = 2 * np.pi - difference
-                        # w = -1*max(0.25, remaining)
                         w = -0.25
-                    # w = 0.2 if ((current_target[2]) - current_position[2]) > 0 and (current_target[2] - current_position[2]) < np.pi else -0.2
+
+
             else:
-                """if index == 0:
-                    print("Moving")"""
                 v = get_velocity(deepcopy(current_position), deepcopy(current_target), ROBOT_SPEED, expected_direction=robot_paths[index][targets[index] - 1][2])
-                # v = np.array([1, 0])
+
                 u, w = feedback_linearized(deepcopy(current_position), v, epsilon=EPSILON)
-                # u = 0.5
-                # w = 0
+
             vel_msg = Twist()
             vel_msg.linear.x = u
             vel_msg.angular.z = w
@@ -359,7 +337,7 @@ def run(args):
             if len(pose_history[index]) % 10:
               with open('/tmp/gazebo_robot_nav_tb3_' + str(index) + '.txt', 'a') as fp:
                 fp.write('\n'.join(','.join(str(v) for v in p)
-                         for p in pose_history[index]) + '\n')
+                         for p in pose_history[index])  + (",%s" % (time.time() - run_time)) + '\n')
                 pose_history[index] = []
         rate_limiter.sleep()
 

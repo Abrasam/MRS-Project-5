@@ -144,9 +144,6 @@ class OccupancyGrid(object):
 
 def sample_random_position(occupancy_grid):
     position = np.zeros(2, dtype=np.float32)
-    # MISSING: Sample a valid random position (do not sample the yaw).
-    # The corresponding cell must be free in the occupancy grid.
-    #print(occupancy_grid.values.shape, occupancy_grid.resolution, occupancy_grid.origin)
     dim = occupancy_grid.values.shape
 
     x = np.random.randint(0, dim[0])
@@ -163,12 +160,6 @@ def sample_random_position(occupancy_grid):
 def draw_world(occupancy_grid, robot_locations, assignments, lines_plot={}, poses=[], line_multiplier=1):
     fig, ax = plt.subplots()
     occupancy_grid.draw()
-    #plt.scatter(.3, .2, s=10, marker='o', color='green', zorder=1000)
-    #draw_solution(start_node, final_node)
-    #plt.scatter(START_POSE[0], START_POSE[1], s=10, marker='o', color='green', zorder=1000)
-    #plt.scatter(GOAL_POSITION[0], GOAL_POSITION[1], s=10, marker='o', color='red', zorder=1000)
-
-    #assignments = divide_grid(occupancy_grid, robot_locations)
 
     colours = [(1, 0, 0), (0, 1, 0), (0, 0, 1),
                (1, 1, 0), (1, 0, 1), (0, 1, 1),
@@ -220,10 +211,6 @@ def draw_world(occupancy_grid, robot_locations, assignments, lines_plot={}, pose
     plt.axis('equal')
     plt.xlabel('x')
     plt.ylabel('y')
-    """plt.xlim([-.5 - 2., 2. + .5])
-    plt.ylim([-.5 - 2., 2. + .5])"""
-    """plt.xlim([0., 20.])
-    plt.ylim([0., 20.])"""
     plt.show()
 
 # @profile
@@ -235,8 +222,7 @@ def divide_grid(occupancy_grid, robots):
 
     # Create E matrices
     # Initially build this using Euclidean distance.
-    # TODO - Use something e.g. dijkstra to show quickest route to the point avoiding obstacles
-    # TODO - don't run the calculations on OCCUPIED slots in the grid.
+
 
     Es = [np.array(occupancy_grid.values.shape) for i in robots]
 
@@ -344,8 +330,6 @@ def divide_grid(occupancy_grid, robots):
             Cs.append(C)
 
         Cs = np.array(Cs)
-        #Es[weight_to_change] = Cs * (Es[weight_to_change] * ms[weight_to_change])
-        # Es *= (ms * Cs) #* random - possibly
 
         # Before altering E, check if completed
         if not (1 in multi_section) and np.max(k) - np.min(k) <= not_equal_split:
@@ -557,10 +541,6 @@ def calculate_mst(occupancy_grid, assignments, robot_location):
                     edges_used[moving_node] = []
                 edges_used[moving_node].append(
                     [DOWN, UP, RIGHT, LEFT][direction])
-            #if i == counter:
-
-        #draw_world(occupancy_grid, robot_locations, assignments, lines_plot = edges_used)
-
     return edges_used
 
 def generate_route_poses(edges, robot_position, occupancy_grid, robot_positions, assignments, lines_plot=[]):
@@ -709,8 +689,7 @@ def generate_route_poses(edges, robot_position, occupancy_grid, robot_positions,
         else:
             print("Should not have reached here")
             sys.exit()
-        # Remove any poses that have the same angle as the previous pose
-        #draw_world(occupancy_grid, robot_positions, assignments, lines_plot=lines_plot, poses=poses)
+    # Remove any poses that have the same angle as the previous pose
     new_poses = []
     for i in range(len(poses)):
         if len(new_poses) == 0:
@@ -720,11 +699,8 @@ def generate_route_poses(edges, robot_position, occupancy_grid, robot_positions,
             continue
         else:
             new_poses.append(poses[i])
-            #draw_world(occupancy_grid, robot_positions, assignments, lines_plot=lines_plot, poses=new_poses)
     if new_poses[-1] != new_poses[0]:
         new_poses.append(new_poses[0])
-
-    #draw_world(occupancy_grid, robot_positions, assignments, lines_plot = lines_plot, poses=new_poses)
 
     return new_poses
 
@@ -866,9 +842,6 @@ def divide(args, robot_locations, robot_speed):
     original_occupancy_grid, occupancy_grid, scaling = create_occupancy_grid(args)
     #robot_locations = [(3, 7), (8, 8)]
 
-    """robot_locations = [occupancy_grid.get_index(
-        sample_random_position(occupancy_grid)) for i in range(3)]
-    robot_locations = list(set(robot_locations))"""
     print(original_occupancy_grid.values.shape)
     print(robot_locations)
     robot_locations = [original_occupancy_grid.get_index(i) for i in robot_locations]
@@ -899,9 +872,6 @@ def divide(args, robot_locations, robot_speed):
     assignments = divide_grid(occupancy_grid, robot_locations)
     if assignments is False:
         return False
-
-    #draw_world(occupancy_grid, robot_locations, assignments)
-               #,lines_plot=edges_used, poses=robot_paths)
 
     edges_used = {}
     robot_edges = []

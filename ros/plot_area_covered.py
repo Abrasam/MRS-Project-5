@@ -21,49 +21,33 @@ def plot_map_cover(filename, number_robots):
 
     covered = np.zeros((data[0].shape[0], number_robots+1))# column for each robot and one for overall
 
-    for index in range(len(data)):
-        d = data[index]
-        print(d.shape)
-        last_centre = None
-        res = original_occupancy_grid.resolution
-        for i in range(d.shape[0]):
-            print(i)
-            x, y = d[i,:2]
-            """if last_centre == None:
-                last_centre = (x, y)
-            elif (x - last_centre[0])**2 + (y - last_centre[1])**2  < (res / 4.0)**2:
+    number_rows = data[0].shape[0]
+    coverage = []
+    times = []
+    for row in range(data[0].shape[0]):
+        print(row)
+        for robot in range(number_robots):
+            if row >= data[robot].shape[0]:
                 continue
-            last_centre = (x, y)"""
-
+            d = data[robot][row, :2]
+            x, y = d
             for a in np.linspace(x - ROBOT_RADIUS, x + ROBOT_RADIUS,10):
                 for b in np.linspace(y - ROBOT_RADIUS, y + ROBOT_RADIUS, 10):
                     #print(a, b, ((a - x)**2 + (b - y)**2) < ROBOT_RADIUS**2)
                     if ((a - x)**2 + (b - y)**2) <= ROBOT_RADIUS**2:
                         #covered_locations.append((a, b))
-                        if original_occupancy_grid.is_free((a, b)):
-                            w, z = cover_grid_total.get_index((a, b))
-                            cover_grid_total.values[w, z] = 3
-                            cover_grid[index].values[w, z] = 3
-            covered[i, index] = np.sum(cover_grid[index].values == 3)
-            covered[i, number_robots] = np.sum(cover_grid_total.values == 3)
+                        w, z = cover_grid_total.get_index((a, b))
+                        cover_grid_total.values[w, z] = 3
+        coverage.append(np.sum(cover_grid_total.values == 3))
+        times.append(data[0][row, -1])
 
-    #covered[:, 3] = np.sum(covered, axis=1)
-    covered /= total_to_cover
-    covered *= 100
-    print(covered)
 
-    fig = plt.figure()
+    for i in range(len(coverage)):
+        coverage[i] = 100.0 * coverage[i]  / float(total_to_cover)
+    times = np.array(times)
+    coverage = np.array(coverage)
 
-    # Data
-    robots = ['tb3_0', 'tb3_1', 'tb3_2', 'tb3_3', 'tb3_4']
-    colors = ['r', 'g', 'b', 'y', 'c']
-
-    for i in range(number_robots):
-        plt.plot(data[i][:, number_robots], covered[:, i], colors[i], label=robots[i])
-        plt.legend()
-
-    plt.plot(data[0][:, number_robots], covered[:, number_robots], colors[number_robots], label='overall')
-    plt.legend()
+    plt.plot(times, coverage, 'r')
 
     plt.xlabel('Time (s)')
     plt.ylabel('Map covered (%)')
@@ -76,4 +60,4 @@ def plot_map_cover(filename, number_robots):
 
 
 if __name__ == "__main__":
-    plot_map_cover("gt_u7_w25_4", 3)
+    plot_map_cover("single_u10_w25_4", 3)

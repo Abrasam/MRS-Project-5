@@ -57,7 +57,7 @@ Our approach used a known map, the range sensors measurements from the robot's L
 \]
 where $w_i$ is the weight of particle $i$, $s_{ij}$ is the distance recorded by sensor $j$ on the robot, $\Phi(x,\mu,\sigma)$ is the Gaussian PDF with mean $\mu$ and standard deviation $\sigma$ and $R(i,j)$ is the ray traced distance from particle $i$ in the direction of sensor $j$.
 
-This can effectively be summarised as the product of the Gaussian PDF for each sensor where the mean is the sensor's observed value and the input to the PDF is the raytraced distance from that particle.
+This can effectively be summarised as the product of the Gaussian PDF for each sensor where the mean is the sensor's observed value and the input to the PDF is the ray-traced distance from that particle.
 \subsection{Range \& Bearing}
 We then refine the weight if there are any other robots in range and line-of-sight (these robots are referred to as the neighbours, the set $N_i$ represents robot $i$'s neighbours.). To do this we compute a second weight, $\bar{w_i}$ using the below formula:
 \[
@@ -82,12 +82,13 @@ We then take these two quantities, $w_i$ and $\bar{w_i}$ and multiply them toget
 We will now compare the performance of the collaborative localisation and the non-collaborative approach. To do this we created a test environment where two robots were already well-localised and one was not, this was done because the system does not perform well in an environment where all robots are initially poorly localised due to rumour propagation. Figure~\ref{fig:loca1} shows the localisation error over time with the collaborative approach while figure~\ref{fig:loca2} shows the error for the standard (non-collaborative) approach. As can be clearly seen the collaborative approach yields a much faster convergence and a lower error following convergence.
 \begin{figure}
 	\centering
-	\includegraphics[width=\columnwidth]{figure_l1.png}
+	\includegraphics[width=0.9\columnwidth]{figure_l1.png}
 	\caption{Error of localisation estimation over time using collaborative approach.}
 	\label{fig:loca1}
 \end{figure}
 \begin{figure}
-	\includegraphics[width=\columnwidth]{figure_l2.png}
+	\centering
+	\includegraphics[width=0.9\columnwidth]{figure_l2.png}
 	\caption{Error of localisation estimation over time using standard approach.}
 	\label{fig:loca2}
 \end{figure}
@@ -128,7 +129,7 @@ An example assignment of a world to 4 robots is shown in figure~\ref{fig:darp}.
 
 \begin{figure}
 	\centering
-	\includegraphics[width=\columnwidth]{figure_darp.png}
+	\includegraphics[width=0.8\columnwidth]{figure_darp.png}
 	\caption{Division of world into 4 regions.}
 	\label{fig:darp}
 \end{figure}
@@ -136,19 +137,13 @@ An example assignment of a world to 4 robots is shown in figure~\ref{fig:darp}.
 \subsection{Path Planning}
 After each robot is assigned to a region, we calculate a path that it must travel along within its region such that it covers the whole region in the shortest time possible. We aim to do this by minimising the amount of duplicate coverage in the region - that is, covering a part of the region twice, before every part of the region has been covered once. Before running the DARP algorithm, explained in section~\ref{section:darp}, we divide the world into square cells with edges of length double the diameter of the robots. This allows a robot to cover the cell with a single pass in both directions.
 
-After running the DARP algorithm and obtaining a region for each robot to cover, we create a minimum spanning tree that connects the centres of every cell in the region. Since the distance between any two cells are equal, any spanning tree will be a minimum one, so we have freedom to choose edges that will maximise the amount of amount of continuous straight lines in order to minimise time spent turning, which is time not covering new ground. Figure~\ref{fig:mst} shows spanning trees for the three regions.
+After running the DARP algorithm and obtaining a region for each robot to cover, we create a minimum spanning tree that connects the centres of every cell in the region. Since the distance between any two cells are equal, any spanning tree will be a minimum one, so we have freedom to choose edges that will maximise the amount of amount of continuous straight lines in order to minimise time spent turning, which is time not covering new ground. 
 
 To generate the final path for the robot, we trace around each of the trees, and we are left with a path that fully covers the region and doesn't cover any section of the region twice.
 
-\begin{figure}
-	\centering
-	\includegraphics[width=0.6\columnwidth]{figure_mst.png}
-	\caption{Spanning trees for each of the three regions.}
-	\label{fig:mst}
-\end{figure}
 
 \subsection{Path Following}
-To calculate movement instructions to give to each robot, we first break the required path down into the key poses. We define the key poses to be where a change of direction is required. For each robot, rather than estimate which key pose it should be heading for based on where it is, we mandate that it heads to each pose sequentially, and only moves on to the next one, once it has reached its required pose. The reason for this is that a little variation in the robot's estimation of its pose could cause it to appear to be on a different section of the required trajectory, and this could lead to somewhat random movement. For each pose that is the current target we calculate the required velocity and then apply feedback linearization to get the necessary control inputs to navigate the robot.
+To calculate movement instructions to give to each robot, we first break the required path down into the key poses. We define the key poses to be where a change of direction is required. For each robot, rather than estimate which key pose it should be heading for based on where it is, we mandate that it heads to each pose sequentially, and only moves on to the next one once it has reached its required pose. The reason for this is that a little variation in the robot's estimation of its pose could cause it to appear to be on a different section of the required trajectory, and this could lead to somewhat random or fluctuating movement. For each pose that is the current target we calculate the required velocity and then apply feedback linearization to get the necessary control inputs to steer the robot.
 
 
 
@@ -157,20 +152,21 @@ To establish how well this navigation algorithm performs, particularly when it w
 
 Figure~\ref{fig:ground_truth} shows the rate at which a system using ground truths covered the map, and figure~\ref{fig:ground_truth_coverage} shows the paths that the robots took. We see that the robots had fairly equally sized regions, and completed covering their respective regions at roughly the same time.
 
-We can compare this to the performance of the coverage algorithm when using the locations predicted by the localisation algorithm - both when using the multi-robot enhancement, and when not. We would expect to see that when we have more accurate localisation, our time to cover the world will be lower. With more accurate positioning, the robots will do a better job of staying on their path and will therefore spend less time duplicating coverage. 
 
-Indeed, we see that when using our multi-robot localisation
+We can compare this to the performance of the coverage algorithm when using the locations predicted by the localisation algorithm - both when using the inter-robot communication enhancement, and when not. We would expect to see that when we have more accurate localisation, our time to cover the world will be lower. With more accurate positioning, the robots will do a better job of staying on their path and will therefore spend less time duplicating coverage. 
+
+When comparing the two different setups, the localisation variant using inter-robot communication covered 70\% of the map in 640 seconds, whereas the variant where each robot localises themselves covered 70\% of the map in 675 seconds. The increased accuracy of the localization in the inter-robot communication variant meant less time was spent duplicating coverage, and so more of the world was covered in less time.
 
 \begin{figure}
 	\centering
-	\includegraphics[width=\columnwidth]{ground_truth.png}
+	\includegraphics[width=0.8\columnwidth]{ground_truth.png}
 	\caption{Progression of world coverage with time.}
 	\label{fig:ground_truth}
 \end{figure}
 
 \begin{figure}
 	\centering
-	\includegraphics[width=\columnwidth]{ground_truth_coverage.png}
+	\includegraphics[width=0.8\columnwidth]{ground_truth_coverage.png}
 	\caption{Robots' paths to cover the world.}
 	\label{fig:ground_truth_coverage}
 \end{figure}
@@ -179,17 +175,17 @@ To evaluate the performance of the coverage algorithm, we ran simulations to see
 
 \begin{table}[h!]
   \begin{center}
-    \caption{Time to cover 80\% of the map}
+    \caption{Time taken to cover 80\% of the map}
     \label{tab:table1}
     \begin{tabular}{|l|c|}
       \hline
       \textbf{Number of Robots} & \textbf{Time (s)} \\
       \hline
-      1 & 0\\
-      2 & 0\\
-      3 & 0\\
-      4 & 0\\
-      5 & 0\\
+      1 & 494\\
+      2 & 240\\
+      3 & 218\\
+      4 & 160\\
+      5 & 138\\
       \hline
     \end{tabular}
   \end{center}
@@ -202,7 +198,7 @@ This section of the project was developed by Paul Durbaba (pd452). Trading of co
 \subsection{Region Trading}
 The region trader works by using an auction of grid cells available. When two robots are within range of each other, they start a trade, with all cells previously owned by either for sale. All robots start out believing that they own the entire world. Robots first purchase the position they are currently at (the trade is aborted if one of the robots is outside of the for sale region), and then expand outwards from this using breadth first search.
 
-To avoid a robot getting trapped in a corner, a robot is able to purchase cells already purchased by the other robot should it run out of cells to buy, which introduces two complications: First, it is possible that buying a cell owned by the other robot would split that robot's region in two. Second, it is now possible for one robot to buy the position of the other, and hence the other robot ends up outside it's own region.
+To avoid a robot getting trapped in a corner, a robot is able to purchase cells already purchased by the other robot should it run out of cells to buy, which introduces two complications: First, it is possible that buying a cell owned by the other robot would split that robot's region in two. Second, it is now possible for one robot to buy the position of the other, and hence the other robot ends up outside its own region.
 
 To deal with the first, I example the 3x3 grid around the other robot's previously owned cell, to ensure that all cells owned by that robot in this 3x3 are connected. The second problem is dealt with by making robots navigate using RRT back to their region if they find themselves outside it.
 
@@ -216,7 +212,8 @@ In the first phase of collision avoidance, robots slow down and change their bea
 The second phase, when the current path is certain to result in a collision, is to drop the current path and revert to rule based navigation until the robot has rotated sufficiently that they would no longer collide if they moved forward. This can then result in the robot navigating outside it's region and having to use RRT to re-enter it.
 
 \begin{figure}
-	\includegraphics[width=\columnwidth]{dec_t2_cover.png}
+	\centering
+	\includegraphics[width=0.8\columnwidth]{dec_t2_cover.png}
 	\caption{Robot trajectories within regions after 8000 seconds}
     \label{fig:decCover}
 \end{figure}
@@ -225,7 +222,8 @@ The second phase, when the current path is certain to result in a collision, is 
 Figure \ref{fig:decCover} shows the resulting trajectories of the robots within their regions, based on outputting each robot's position 10 times per second. By counting how often they fall inside their regions, robots 0 (red line on blue) ,1 (green on green) and 2 (blue line on brown) spend 84\%, 91\% and 70\% of their time within their own regions respectively.
 
 \begin{figure}
-	\includegraphics[width=\columnwidth]{dec_t2_line_percent.png}
+\centering
+	\includegraphics[width=0.8\columnwidth]{dec_t2_line_percent.png}
 	\caption{Coverage (percent of region cells out of 178) / Time (seconds)}
     \label{fig:decLine}
 \end{figure}

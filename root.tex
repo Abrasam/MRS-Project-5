@@ -142,7 +142,7 @@ To generate the final path for the robot, we trace around each of the trees, and
 
 \begin{figure}
 	\centering
-	\includegraphics[width=0.8\columnwidth]{figure_mst.png}
+	\includegraphics[width=0.6\columnwidth]{figure_mst.png}
 	\caption{Spanning trees for each of the three regions.}
 	\label{fig:mst}
 \end{figure}
@@ -157,7 +157,9 @@ To establish how well this navigation algorithm performs, particularly when it w
 
 Figure~\ref{fig:ground_truth} shows the rate at which a system using ground truths covered the map, and figure~\ref{fig:ground_truth_coverage} shows the paths that the robots took. We see that the robots had fairly equally sized regions, and completed covering their respective regions at roughly the same time.
 
-We can compare this to the performance of the coverage algorithm when using the locations predicted by the localisation algorithm - both when using the multi-robot enhancement, and when not. We would expect to see that when we have more accurate localisation, our time to cover the world will be lower. With more accurate positioning, the robots will do a better job of staying on their path and will therefore spend less time duplicating coverage. Indeed, we see that when using our multi-robot localisation
+We can compare this to the performance of the coverage algorithm when using the locations predicted by the localisation algorithm - both when using the multi-robot enhancement, and when not. We would expect to see that when we have more accurate localisation, our time to cover the world will be lower. With more accurate positioning, the robots will do a better job of staying on their path and will therefore spend less time duplicating coverage. 
+
+Indeed, we see that when using our multi-robot localisation
 
 \begin{figure}
 	\centering
@@ -172,6 +174,8 @@ We can compare this to the performance of the coverage algorithm when using the 
 	\caption{Robots' paths to cover the world.}
 	\label{fig:ground_truth_coverage}
 \end{figure}
+
+To evaluate the performance of the coverage algorithm, we ran simulations to see how varying the number of robots would affect the amount of time it takes to cover the map. Even under ideal circumstances, the robots won't manage to cover 1000\% of the map as a circular robot is unable to cover areas in a right angled corner, for example, and we don't let robots get too close to obstacles in case they crash. We therefore chose to compare how long it takes each team of robots to cover 80\% of the map. The results are shown in Table~\ref{tab:table1}. 
 
 \begin{table}[h!]
   \begin{center}

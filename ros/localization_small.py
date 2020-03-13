@@ -76,8 +76,9 @@ class Particle(object):
     self._pose[X] += dx*np.cos(self._pose[YAW])
     self._pose[Y] += dx*np.sin(self._pose[YAW])
 
-    if np.random.random() < 0.02:
+    if np.random.random() < 0.08:
         self.__init__()
+
 
   def refine_weight(self, messages):
     sigma_r = 0.8 #80cm
@@ -326,11 +327,12 @@ class GroundtruthPose(object):
             intersection_cylinder(CYLINDER_POSITION[X], CYLINDER_POSITION[Y], CYLINDER_RADIUS))
     return d
 
+
 def run(args):
   rospy.init_node('localization')
 
   # Update control every 100 ms.
-  rate_limiter = rospy.Rate(10)
+  rate_limiter = rospy.Rate(100)
   particle_publisher = [rospy.Publisher('/particles'+str(i), PointCloud, queue_size=1) for i in range(NUM_ROBOTS)]
   position_publisher = [rospy.Publisher('/locpos'+str(i), Point32, queue_size=1) for i in range(NUM_ROBOTS)]
   laser = [SimpleLaser("tb3_"+str(i)) for i in range(NUM_ROBOTS)]
@@ -342,7 +344,7 @@ def run(args):
     with open('/tmp/gazebo_robot_tb3_' + str(i) + '.txt', 'w'):
       pass
 
-  num_particles = 50
+  num_particles = 40
   particles = [[Particle() for _ in range(num_particles)] for i in range(NUM_ROBOTS)]
 
   frame_id = 0
@@ -365,7 +367,7 @@ def run(args):
           if dir_vec.dot(np.array([-between_vec[Y],between_vec[X]])) > 0:
             ang = -ang
           raytrace = groundtruth[j].ray_trace(ang)
-          if raytrace >= dist and dist < 4: # range of 4m (los)
+          if raytrace >= dist and dist < 7: # range of 4m (los)
             messages.append((dist*np.random.normal(loc=1, scale=0.1), ang*np.random.normal(loc=1, scale=0.1), list(map(lambda p: Particle().copy(p), particles[j])) if j == 0 else list(map(lambda p: p.set(groundtruth[j].pose+normalize(np.random.randn())), [Particle() for _ in range(num_particles)])))) # assume robots 1/2 are well localised
 
       # Update particle positions and weights.
@@ -375,7 +377,7 @@ def run(args):
       for _, p in enumerate(particles[i]):
         p.move(delta_pose)
         p.compute_weight(*laser[i].measurements)
-        p.refine_weight(messages)
+        #p.refine_weight(messages)
         total_weight += p.weight
       #print(time.time()-t)
       # Low variance re-sampling of particles.

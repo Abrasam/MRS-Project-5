@@ -168,7 +168,7 @@ class LocalisationPose(object):
     def callback(self, msg):
         self._pose[0] = msg.x
         self._pose[1] = msg.y
-        self._pose[2] = ((msg.z + np.pi) % (2 * np.pi)) - np.pi# - np.pi # Possible source of bug
+        self._pose[2] = ((msg.z + np.pi) % (2 * np.pi)) - np.pi
         # print("YAW                    ", self._pose[2])
 
     def apply_motion_model(self, u, w, dt):
@@ -337,7 +337,7 @@ def run(args):
                 # Keep moving for a bit
                 arrived[index] = True
                 # Within 3 degrees
-                if np.absolute((current_target[2]) - current_position[2]) < (0.3):
+                if np.absolute((current_target[2]) - current_position[2]) < (0.2):
                     """if index == 0:
                         print("Next")"""
                     arrived[index] = False
@@ -360,11 +360,11 @@ def run(args):
                     if difference < np.pi:
                         # Difference heading to 0
                         # w = max(0.25, difference
-                        w = 0.75
+                        w = 0.25
                     else:
                         remaining = 2 * np.pi - difference
                         # w = -1*max(0.25, remaining)
-                        w = -0.75
+                        w = -0.25
                     # w = 0.2 if ((current_target[2]) - current_position[2]) > 0 and (current_target[2] - current_position[2]) < np.pi else -0.2
             else:
                 """if index == 0:
